@@ -1,5 +1,5 @@
 {% docs nft_transfer_doc %}
 
-This table contains NFT transfer events on the Base blockchain.
+This table contains NFT transfer events on the Bl blockchain.
 
 {% enddocs %}

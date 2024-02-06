@@ -1,5 +1,5 @@
 {% docs blast_batch_size %}
 
-Total Base Txs included within batch.
+Total Blast Txs included within batch.
 
 {% enddocs %}

@@ -60,12 +60,12 @@ sources:
     tables:
       - name: verified_abis
   - name: blast_bronze_api
-    database: base
+    database: blast
     schema: bronze_api
     tables:
       - name: contract_abis
   - name: github_actions
-    database: base
+    database: blast
     schema: github_actions
     tables:
       - name: workflows
