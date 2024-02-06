@@ -1,4 +1,4 @@
--- depends_on: {{ ref('bronze__streamline_receipts') }}
+{# -- depends_on: {{ ref('bronze__streamline_receipts') }}
 {{ config(
     materialized = 'incremental',
     incremental_strategy = 'delete+insert',
@@ -127,4 +127,4 @@ WHERE
     tx_hash IS NOT NULL
     AND POSITION IS NOT NULL qualify(ROW_NUMBER() over (PARTITION BY block_number, POSITION
 ORDER BY
-    _inserted_timestamp DESC)) = 1
+    _inserted_timestamp DESC)) = 1 #}

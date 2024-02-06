@@ -1,4 +1,4 @@
--- depends_on: {{ ref('bronze__streamline_transactions') }}
+{# -- depends_on: {{ ref('bronze__streamline_transactions') }}
 {{ config(
     materialized = 'incremental',
     incremental_strategy = 'delete+insert',
@@ -415,4 +415,4 @@ FROM
 WHERE
     block_hash IS NOT NULL qualify(ROW_NUMBER() over (PARTITION BY block_number, POSITION
 ORDER BY
-    _inserted_timestamp DESC, is_pending ASC)) = 1
+    _inserted_timestamp DESC, is_pending ASC)) = 1 #}

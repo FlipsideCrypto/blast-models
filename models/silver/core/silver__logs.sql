@@ -1,4 +1,4 @@
-{{ config(
+{# {{ config(
     materialized = 'incremental',
     incremental_strategy = 'delete+insert',
     unique_key = "block_number",
@@ -186,4 +186,4 @@ SELECT
 FROM
     FINAL qualify(ROW_NUMBER() over (PARTITION BY block_number, event_index
 ORDER BY
-    _inserted_timestamp DESC, is_pending ASC)) = 1
+    _inserted_timestamp DESC, is_pending ASC)) = 1 #}

@@ -1,4 +1,4 @@
--- depends_on: {{ ref('bronze__streamline_blocks') }}
+{# -- depends_on: {{ ref('bronze__streamline_blocks') }}
 {{ config(
     materialized = 'incremental',
     unique_key = "block_number",
@@ -74,4 +74,4 @@ WHERE
 
 qualify(ROW_NUMBER() over (PARTITION BY block_number
 ORDER BY
-    _inserted_timestamp DESC)) = 1
+    _inserted_timestamp DESC)) = 1 #}
