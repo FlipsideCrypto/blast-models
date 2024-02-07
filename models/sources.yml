@@ -1,0 +1,76 @@
+version: 2
+
+sources:
+  - name: ethereum
+    database: ethereum
+    schema: core
+    tables:
+      - name: fact_hourly_token_prices
+      - name: ez_hourly_token_prices
+  - name: bronze_streamline
+    database: streamline
+    schema: |
+      {{ "BLAST_DEV" if var("STREAMLINE_USE_DEV_FOR_EXTERNAL_TABLES", False) else "BLAST" }}
+    tables:
+      - name: receipts
+      - name: blocks
+      - name: transactions
+      - name: debug_traceBlockByNumber
+      - name: decoded_logs
+      - name: confirm_blocks
+  - name: udfs_streamline
+    database: udfs
+    schema: streamline
+    tables:
+      - name: node_mapping
+  - name: crosschain
+    database: "{{ 'crosschain' if target.database == 'BLAST' else 'crosschain_dev' }}"
+    schema: core
+    tables:
+      - name: dim_labels
+      - name: ez_hourly_token_prices
+  - name: silver_crosschain
+    database: "{{ 'crosschain' if target.database == 'BLAST' else 'crosschain_dev' }}"
+    schema: silver
+    tables:
+      - name: apis_keys
+      - name: asset_metadata_coin_gecko
+      - name: asset_metadata_coin_market_cap
+      - name: hourly_prices_coin_gecko
+      - name: hourly_prices_coin_market_cap
+      - name: token_prices_priority_hourly
+      - name: token_prices_all_providers_hourly
+      - name: asset_metadata_priority
+      - name: asset_metadata_all_providers
+      - name: near_address_encoded
+      - name: labels_combined
+  - name: crosschain_public
+    database: crosschain
+    schema: bronze_public
+    tables:
+      - name: user_abis
+  - name: streamline_crosschain
+    database: streamline
+    schema: crosschain
+    tables:
+      - name: node_mapping
+  - name: blast_silver
+    database: blast
+    schema: silver
+    tables:
+      - name: verified_abis
+  - name: blast_bronze_api
+    database: blast
+    schema: bronze_api
+    tables:
+      - name: contract_abis
+  - name: github_actions
+    database: blast
+    schema: github_actions
+    tables:
+      - name: workflows
+  - name: external_gold_defillama
+    database: external
+    schema: defillama
+    tables:
+      - name: dim_chains
