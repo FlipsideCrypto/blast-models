@@ -45,7 +45,7 @@ When False, none of the on-run-start macros are executed on model run
 Default values are False
 
 * Usage:
-dbt run --var '{"UPDATE_UDFS_AND_SPS":True}'  -m ...
+dbt run --vars '{"UPDATE_UDFS_AND_SPS":True}'  -m ...
 
 To reload records in a curated complete table without a full-refresh, such as `silver_bridge.complete_bridge_activity`:
 * HEAL_CURATED_MODEL
@@ -55,8 +55,8 @@ When item is not included in var array [] or does not match specified item in mo
 Example set up: `{% if is_incremental() and 'axelar' not in var('HEAL_CURATED_MODEL') %}`
 
 * Usage:
-Single CTE: dbt run --var '{"HEAL_CURATED_MODEL":"axelar"}' -m ...
-Multiple CTEs: dbt run --var '{"HEAL_CURATED_MODEL":["axelar","across","celer_cbridge"]}' -m ...
+Single CTE: dbt run --vars '{"HEAL_CURATED_MODEL":"axelar"}' -m ...
+Multiple CTEs: dbt run --vars '{"HEAL_CURATED_MODEL":["axelar","across","celer_cbridge"]}' -m ...
 
 
 ### Resources:
@@ -98,7 +98,7 @@ To add/update a model's snowflake tags, add/modify the `meta` model property und
 By default, model tags are pushed to Snowflake on each load. You can disable this by setting the `UPDATE_SNOWFLAKE_TAGS` project variable to `False` during a run.
 
 ```
-dbt run --var '{"UPDATE_SNOWFLAKE_TAGS":False}' -s models/core/core__fact_blocks.sql
+dbt run --vars '{"UPDATE_SNOWFLAKE_TAGS":False}' -s models/core/core__fact_blocks.sql
 ```
 
 ### Querying for existing tags on a model in snowflake
