@@ -72,8 +72,7 @@ WHERE
 {% endif %}
 ),
 #}
---newcolumns (confirm data types and pull through CTEs, add to ymls)
---mint, depositReceiptVersion, yParity, sourceHash
+
 base_tx AS (
     SELECT
         block_number,
