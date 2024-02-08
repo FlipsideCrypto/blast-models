@@ -1,20 +1,21 @@
-{# -- depends_on: {{ ref('bronze__streamline_traces') }}
+-- depends_on: {{ ref('bronze__streamline_traces') }}
 {{ config (
     materialized = "incremental",
     incremental_strategy = 'delete+insert',
     unique_key = "block_number",
     cluster_by = "block_timestamp::date, _inserted_timestamp::date",
     post_hook = "ALTER TABLE {{ this }} ADD SEARCH OPTIMIZATION",
-    full_refresh = false,
-    tags = ['core','non_realtime']
+    tags = ['non_realtime']
 ) }}
-
+--    full_refresh = false
 WITH bronze_traces AS (
 
     SELECT
         block_number,
-        VALUE :array_index :: INT AS tx_position,
-        DATA :result AS full_traces,
+        tx_position,
+        full_traces,
+        {# VALUE :array_index :: INT AS tx_position,
+        DATA :result AS full_traces, #}
         _inserted_timestamp
     FROM
 
@@ -27,12 +28,13 @@ WHERE
         FROM
             {{ this }}
     )
-    AND DATA :result IS NOT NULL
+    {# AND DATA :result IS NOT NULL #}
 {% else %}
     {{ ref('bronze__streamline_FR_traces') }}
-WHERE
+{# WHERE
     _partition_by_block_id <= 2300000
-    AND DATA :result IS NOT NULL
+    AND
+    DATA :result IS NOT NULL #}
 {% endif %}
 
 qualify(ROW_NUMBER() over (PARTITION BY block_number, tx_position
@@ -415,4 +417,4 @@ SELECT
 FROM
     FINAL qualify(ROW_NUMBER() over(PARTITION BY block_number, tx_position, trace_index
 ORDER BY
-    _inserted_timestamp DESC, is_pending ASC)) = 1 #}
+    _inserted_timestamp DESC, is_pending ASC)) = 1

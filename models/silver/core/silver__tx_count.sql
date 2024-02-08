@@ -1,4 +1,4 @@
-{# {{ config(
+{{ config(
     materialized = 'incremental',
     unique_key = "block_number",
     merge_exclude_columns = ["inserted_timestamp"],
@@ -35,4 +35,4 @@ SELECT
     SYSDATE() AS modified_timestamp,
     '{{ invocation_id }}' AS _invocation_id
 FROM
-    base #}
+    base

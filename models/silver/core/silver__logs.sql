@@ -1,12 +1,12 @@
-{# {{ config(
+{{ config(
     materialized = 'incremental',
     incremental_strategy = 'delete+insert',
     unique_key = "block_number",
     cluster_by = "block_timestamp::date, _inserted_timestamp::date",
     post_hook = "ALTER TABLE {{ this }} ADD SEARCH OPTIMIZATION",
-    tags = ['core','non_realtime'],
-    full_refresh = false
+    tags = ['non_realtime']
 ) }}
+--     full_refresh = false
 
 WITH base AS (
 
@@ -186,4 +186,4 @@ SELECT
 FROM
     FINAL qualify(ROW_NUMBER() over (PARTITION BY block_number, event_index
 ORDER BY
-    _inserted_timestamp DESC, is_pending ASC)) = 1 #}
+    _inserted_timestamp DESC, is_pending ASC)) = 1

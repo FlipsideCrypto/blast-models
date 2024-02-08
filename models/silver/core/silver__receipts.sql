@@ -1,14 +1,13 @@
-{# -- depends_on: {{ ref('bronze__streamline_receipts') }}
+-- depends_on: {{ ref('bronze__streamline_receipts') }}
 {{ config(
     materialized = 'incremental',
     incremental_strategy = 'delete+insert',
     unique_key = "block_number",
     cluster_by = "ROUND(block_number, -3)",
     post_hook = "ALTER TABLE {{ this }} ADD SEARCH OPTIMIZATION on equality(tx_hash)",
-    tags = ['core','non_realtime'],
-    full_refresh = false
+    tags = ['non_realtime']
 ) }}
-
+--    full_refresh = false
 WITH base AS (
 
     SELECT
@@ -35,6 +34,7 @@ WHERE
 ),
 FINAL AS (
     SELECT
+        DATA,
         block_number,
         DATA :blockHash :: STRING AS block_hash,
         utils.udf_hex_to_int(
@@ -127,4 +127,4 @@ WHERE
     tx_hash IS NOT NULL
     AND POSITION IS NOT NULL qualify(ROW_NUMBER() over (PARTITION BY block_number, POSITION
 ORDER BY
-    _inserted_timestamp DESC)) = 1 #}
+    _inserted_timestamp DESC)) = 1

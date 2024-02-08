@@ -1,13 +1,13 @@
-{# -- depends_on: {{ ref('bronze__streamline_transactions') }}
+-- depends_on: {{ ref('bronze__streamline_transactions') }}
 {{ config(
     materialized = 'incremental',
     incremental_strategy = 'delete+insert',
     unique_key = "block_number",
     cluster_by = "block_timestamp::date, _inserted_timestamp::date",
     post_hook = "ALTER TABLE {{ this }} ADD SEARCH OPTIMIZATION",
-    tags = ['core','non_realtime']
+    tags = ['non_realtime']
 ) }}
-
+--    full_refresh = false
 WITH base AS (
 
     SELECT
@@ -34,28 +34,33 @@ WHERE
 ),
 base_tx AS (
     SELECT
-        A.block_number AS block_number,
-        A.data :blockHash :: STRING AS block_hash,
+        block_number,
+        DATA :blockHash :: STRING AS block_hash,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :blockNumber :: STRING
+                DATA :blockNumber :: STRING
             )
         ) AS blockNumber,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :chainId :: STRING
+                DATA: depositReceiptVersion :: STRING
             )
-        ) AS chain_id,
-        A.data :from :: STRING AS from_address,
+        ) AS deposit_receipt_version,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :gas :: STRING
+                DATA :chainId :: STRING
+            )
+        ) AS chain_id,
+        DATA :from :: STRING AS from_address,
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                DATA :gas :: STRING
             )
         ) AS gas,
         COALESCE(
             TRY_TO_NUMBER(
                 utils.udf_hex_to_int(
-                    A.data :gasPrice :: STRING
+                    DATA :gasPrice :: STRING
                 )
             ) / pow(
                 10,
@@ -63,8 +68,8 @@ base_tx AS (
             ),
             0
         ) AS gas_price,
-        A.data :hash :: STRING AS tx_hash,
-        A.data :input :: STRING AS input_data,
+        DATA :hash :: STRING AS tx_hash,
+        DATA :input :: STRING AS input_data,
         SUBSTR(
             input_data,
             1,
@@ -72,7 +77,12 @@ base_tx AS (
         ) AS origin_function_signature,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :maxFeePerGas :: STRING
+                DATA :mint :: STRING
+            )
+        ) AS mint,
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                DATA :maxFeePerGas :: STRING
             )
         ) / pow(
             10,
@@ -80,7 +90,7 @@ base_tx AS (
         ) AS max_fee_per_gas,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :maxPriorityFeePerGas :: STRING
+                DATA :maxPriorityFeePerGas :: STRING
             )
         ) / pow(
             10,
@@ -88,35 +98,37 @@ base_tx AS (
         ) AS max_priority_fee_per_gas,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :nonce :: STRING
+                DATA :nonce :: STRING
             )
         ) AS nonce,
-        A.data :r :: STRING AS r,
-        A.data :s :: STRING AS s,
-        A.data :to :: STRING AS to_address1,
+        DATA :r :: STRING AS r,
+        DATA :s :: STRING AS s,
+        DATA :sourceHash :: STRING AS source_hash,
+        DATA :to :: STRING AS to_address1,
         CASE
             WHEN to_address1 = '' THEN NULL
             ELSE to_address1
         END AS to_address,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :transactionIndex :: STRING
+                DATA :transactionIndex :: STRING
             )
         ) AS POSITION,
-        A.data :type :: STRING AS TYPE,
-        A.data :v :: STRING AS v,
+        DATA :type :: STRING AS TYPE,
+        DATA :v :: STRING AS v,
         utils.udf_hex_to_int(
-            A.data :value :: STRING
+            DATA :value :: STRING
         ) AS value_precise_raw,
         utils.udf_decimal_adjust(
             value_precise_raw,
             18
         ) AS value_precise,
         value_precise :: FLOAT AS VALUE,
-        A._INSERTED_TIMESTAMP,
-        A.data AS DATA
+        DATA :yParity :: STRING AS y_parity,
+        _INSERTED_TIMESTAMP,
+        DATA
     FROM
-        base A
+        base
 ),
 new_records AS (
     SELECT
@@ -129,11 +141,13 @@ new_records AS (
         t.tx_hash,
         t.input_data,
         t.origin_function_signature,
+        t.mint,
         t.max_fee_per_gas,
         t.max_priority_fee_per_gas,
         t.nonce,
         t.r,
         t.s,
+        t.source_hash,
         t.to_address,
         t.position,
         t.type,
@@ -141,6 +155,7 @@ new_records AS (
         t.value_precise_raw,
         t.value_precise,
         t.value,
+        t.y_parity,
         block_timestamp,
         CASE
             WHEN block_timestamp IS NULL
@@ -207,11 +222,13 @@ missing_data AS (
         t.tx_hash,
         t.input_data,
         t.origin_function_signature,
+        t.mint,
         t.max_fee_per_gas,
         t.max_priority_fee_per_gas,
         t.nonce,
         t.r,
         t.s,
+        t.source_hash,
         t.to_address,
         t.position,
         t.type,
@@ -219,6 +236,7 @@ missing_data AS (
         t.value_precise_raw,
         t.value_precise,
         t.value,
+        t.y_parity,
         b.block_timestamp,
         FALSE AS is_pending,
         r.gas_used,
@@ -278,15 +296,18 @@ FINAL AS (
         tx_hash,
         input_data,
         origin_function_signature,
+        mint,
         max_fee_per_gas,
         max_priority_fee_per_gas,
         nonce,
         r,
         s,
+        source_hash,
         to_address,
         POSITION,
         TYPE,
         v,
+        y_parity,
         VALUE,
         value_precise_raw,
         value_precise,
@@ -323,15 +344,18 @@ SELECT
     tx_hash,
     input_data,
     origin_function_signature,
+    mint,
     max_fee_per_gas,
     max_priority_fee_per_gas,
     nonce,
     r,
     s,
+    source_hash,
     to_address,
     POSITION,
     TYPE,
     v,
+    y_parity,
     VALUE,
     value_precise_raw,
     value_precise,
@@ -367,15 +391,18 @@ SELECT
     tx_hash,
     input_data,
     origin_function_signature,
+    mint,
     max_fee_per_gas,
     max_priority_fee_per_gas,
     nonce,
     r,
     s,
+    source_hash,
     to_address,
     POSITION,
     TYPE,
     v,
+    y_parity,
     VALUE,
     value_precise_raw,
     value_precise,
@@ -415,4 +442,4 @@ FROM
 WHERE
     block_hash IS NOT NULL qualify(ROW_NUMBER() over (PARTITION BY block_number, POSITION
 ORDER BY
-    _inserted_timestamp DESC, is_pending ASC)) = 1 #}
+    _inserted_timestamp DESC, is_pending ASC)) = 1
