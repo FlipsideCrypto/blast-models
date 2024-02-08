@@ -23,8 +23,7 @@ SELECT
         'jsonrpc' :'2.0' },
         'quicknode_blast_testnet'
     ) AS resp,
-    resp :data AS DATA,
-    resp :data :result AS result,
+    resp :data :result AS DATA,
     SYSDATE() AS _inserted_timestamp
 FROM
     num_seq
