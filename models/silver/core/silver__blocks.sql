@@ -1,4 +1,4 @@
-{# -- depends_on: {{ ref('bronze__streamline_blocks') }} #}
+-- depends_on: {{ ref('bronze__streamline_blocks') }}
 {{ config(
     materialized = 'incremental',
     unique_key = "block_number",

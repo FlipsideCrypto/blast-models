@@ -1,4 +1,4 @@
-{# -- depends_on: {{ ref('bronze__streamline_receipts') }} #}
+-- depends_on: {{ ref('bronze__streamline_receipts') }}
 {{ config(
     materialized = 'incremental',
     incremental_strategy = 'delete+insert',
