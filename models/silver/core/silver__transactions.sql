@@ -8,53 +8,13 @@
     tags = ['non_realtime']
 ) }}
 --    full_refresh = false
+WITH base AS (
 
-WITH num_seq AS (
-
-    SELECT
-        _id AS block_number
-    FROM
-        {{ ref('silver__number_sequence') }}
-    WHERE
-        _id > 1300000
-        AND _id <= 1300010
-),
-bronze AS (
-    SELECT
-        block_number AS block_number,
-        blast_dev.utils.udf_int_to_hex(block_number) AS block_hex,
-        live.udf_api(
-            'POST',
-            '{blast_testnet_url}',{},{ 'method' :'eth_getBlockByNumber',
-            'params' :[ block_hex, True ],
-            'id' :1,
-            'jsonrpc' :'2.0' },
-            'quicknode_blast_testnet'
-        ) AS resp,
-        resp :data :result :transactions AS resp_data,
-        SYSDATE() AS _inserted_timestamp
-    FROM
-        num_seq
-),
-bronze_tx AS (
     SELECT
         block_number,
-        resp,
-        resp_data,
-        VALUE AS DATA,
+        DATA,
         _inserted_timestamp
     FROM
-        bronze,
-        LATERAL FLATTEN (
-            input => resp_data
-        )
-),
-{# base AS (
-SELECT
-    block_number,
-    DATA,
-    _inserted_timestamp
-FROM
 
 {% if is_incremental() %}
 {{ ref('bronze__streamline_transactions') }}
@@ -72,8 +32,6 @@ WHERE
     IS_OBJECT(DATA)
 {% endif %}
 ),
-#}
-
 base_tx AS (
     SELECT
         block_number,
@@ -170,7 +128,7 @@ base_tx AS (
         _INSERTED_TIMESTAMP,
         DATA
     FROM
-        bronze_tx
+        base
 ),
 new_records AS (
     SELECT

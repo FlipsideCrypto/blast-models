@@ -8,35 +8,7 @@
 ) }}
 --     full_refresh = false
 
-WITH num_seq AS (
-
-    SELECT
-        _id AS block_number
-    FROM
-        {{ ref('silver__number_sequence') }}
-    WHERE
-        _id > 1300000
-        AND _id <= 1300010
-),
-bronze AS (
-    SELECT
-        block_number AS block_number,
-        blast_dev.utils.udf_int_to_hex(block_number) AS block_hex,
-        live.udf_api(
-            'POST',
-            '{blast_testnet_url}',{},{ 'method' :'eth_getBlockByNumber',
-            'params' :[ block_hex, False ],
-            'id' :1,
-            'jsonrpc' :'2.0' },
-            'quicknode_blast_testnet'
-        ) AS resp,
-        resp :data AS DATA,
-        SYSDATE() AS _inserted_timestamp
-    FROM
-        num_seq
-)
 SELECT
-    resp,
     DATA,
     block_number,
     utils.udf_hex_to_int(
@@ -90,8 +62,9 @@ SELECT
     SYSDATE() AS modified_timestamp,
     '{{ invocation_id }}' AS _invocation_id
 FROM
-    bronze {# {% if is_incremental() %}
-    {{ ref('bronze__streamline_blocks') }}
+
+{% if is_incremental() %}
+{{ ref('bronze__streamline_blocks') }}
 WHERE
     _inserted_timestamp >= (
         SELECT
@@ -103,7 +76,6 @@ WHERE
     {{ ref('bronze__streamline_FR_blocks') }}
 {% endif %}
 
-#}
 qualify(ROW_NUMBER() over (PARTITION BY block_number
 ORDER BY
     _inserted_timestamp DESC)) = 1

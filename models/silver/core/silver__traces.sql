@@ -8,58 +8,14 @@
     tags = ['non_realtime']
 ) }}
 --    full_refresh = false
-
-WITH num_seq AS (
-
-    SELECT
-        _id AS block_number
-    FROM
-        {{ ref('silver__number_sequence') }}
-    WHERE
-        _id > 1300000
-        AND _id <= 1300010
-),
-
-bronze AS (
-
-SELECT 
-    block_number,
-    utils.udf_int_to_hex(block_number) AS block_hex,
-    live.udf_api(
-        'POST',
-        '{blast_testnet_url}',
-        {},
-        { 'method' :'debug_traceBlockByNumber',
-          'params' :[
-                block_hex,
-                {'tracer': 'callTracer','timeout': '30s'}
-            ],
-            'id' :1,
-            'jsonrpc' :'2.0' },
-            'quicknode_blast_testnet'
-    ) AS resp,
-    resp :data :result AS resp_data,
-    SYSDATE() AS _inserted_timestamp
-FROM num_seq
-),
-
-bronze_traces AS (
-
-SELECT
-    block_number,
-    value :result AS full_traces,
-    index :: INT AS tx_position,
-    _inserted_timestamp
-FROM bronze,
-LATERAL FLATTEN (input => resp_data)
-),
-
-{# bronze_traces AS (
+WITH bronze_traces AS (
 
     SELECT
         block_number,
-        VALUE :array_index :: INT AS tx_position,
-        DATA :result AS full_traces,
+        tx_position,
+        full_traces,
+        {# VALUE :array_index :: INT AS tx_position,
+        DATA :result AS full_traces, #}
         _inserted_timestamp
     FROM
 
@@ -72,19 +28,19 @@ WHERE
         FROM
             {{ this }}
     )
-    AND DATA :result IS NOT NULL
+    {# AND DATA :result IS NOT NULL #}
 {% else %}
     {{ ref('bronze__streamline_FR_traces') }}
-WHERE
+{# WHERE
     _partition_by_block_id <= 2300000
-    AND DATA :result IS NOT NULL
+    AND
+    DATA :result IS NOT NULL #}
 {% endif %}
 
 qualify(ROW_NUMBER() over (PARTITION BY block_number, tx_position
 ORDER BY
     _inserted_timestamp DESC)) = 1
-), #}
-
+),
 flatten_traces AS (
     SELECT
         block_number,
