@@ -7,6 +7,7 @@
     merge_exclude_columns = ["inserted_timestamp"]
 ) }}
 --     full_refresh = false
+
 WITH num_seq AS (
 
     SELECT

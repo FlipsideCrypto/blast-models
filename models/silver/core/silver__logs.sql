@@ -6,7 +6,6 @@
     post_hook = "ALTER TABLE {{ this }} ADD SEARCH OPTIMIZATION",
     tags = ['non_realtime']
 ) }}
-
 --     full_refresh = false
 
 WITH base AS (

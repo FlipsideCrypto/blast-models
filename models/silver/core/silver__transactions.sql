@@ -8,6 +8,7 @@
     tags = ['non_realtime']
 ) }}
 --    full_refresh = false
+
 WITH num_seq AS (
 
     SELECT
