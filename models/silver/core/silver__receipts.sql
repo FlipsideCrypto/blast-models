@@ -1,21 +1,59 @@
-{# -- depends_on: {{ ref('bronze__streamline_receipts') }}
+{# -- depends_on: {{ ref('bronze__streamline_receipts') }} #}
 {{ config(
     materialized = 'incremental',
     incremental_strategy = 'delete+insert',
     unique_key = "block_number",
     cluster_by = "ROUND(block_number, -3)",
     post_hook = "ALTER TABLE {{ this }} ADD SEARCH OPTIMIZATION on equality(tx_hash)",
-    tags = ['core','non_realtime'],
-    full_refresh = false
+    tags = ['non_realtime']
 ) }}
-
-WITH base AS (
+--    full_refresh = false
+WITH num_seq AS (
 
     SELECT
+        _id AS block_number
+    FROM
+        {{ ref('silver__number_sequence') }}
+    WHERE
+        _id > 1300000
+        AND _id <= 1300010
+),
+bronze AS (
+    SELECT
         block_number,
-        DATA,
+        blast_dev.utils.udf_int_to_hex(block_number) AS block_hex,
+        blast_dev.live.udf_api(
+            'POST',
+            '{blast_testnet_url}',{},{ 'method' :'eth_getBlockReceipts',
+            'params' :[ block_hex ],
+            'id' :1,
+            'jsonrpc' :'2.0' },
+            'quicknode_blast_testnet'
+        ) AS resp,
+        resp :data :result AS resp_data,
+        SYSDATE() AS _inserted_timestamp
+    FROM
+        num_seq
+),
+bronze_receipts AS (
+    SELECT
+        block_number,
+        resp,
+        resp_data,
+        VALUE AS DATA,
         _inserted_timestamp
     FROM
+        bronze,
+        LATERAL FLATTEN (
+            input => resp_data
+        )
+),
+{# base AS (
+SELECT
+    block_number,
+    DATA,
+    _inserted_timestamp
+FROM
 
 {% if is_incremental() %}
 {{ ref('bronze__streamline_receipts') }}
@@ -33,8 +71,11 @@ WHERE
     IS_OBJECT(DATA)
 {% endif %}
 ),
+#}
 FINAL AS (
     SELECT
+        resp,
+        DATA,
         block_number,
         DATA :blockHash :: STRING AS block_hash,
         utils.udf_hex_to_int(
@@ -117,7 +158,7 @@ FINAL AS (
             DATA: depositReceiptVersion :: STRING
         ) :: INT AS deposit_receipt_version
     FROM
-        base
+        bronze_receipts
 )
 SELECT
     *
@@ -127,4 +168,4 @@ WHERE
     tx_hash IS NOT NULL
     AND POSITION IS NOT NULL qualify(ROW_NUMBER() over (PARTITION BY block_number, POSITION
 ORDER BY
-    _inserted_timestamp DESC)) = 1 #}
+    _inserted_timestamp DESC)) = 1

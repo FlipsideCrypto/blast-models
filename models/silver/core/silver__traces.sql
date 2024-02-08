@@ -1,13 +1,13 @@
-{# -- depends_on: {{ ref('bronze__streamline_traces') }}
+{# -- depends_on: {{ ref('bronze__streamline_traces') }} #}
 {{ config (
     materialized = "incremental",
     incremental_strategy = 'delete+insert',
     unique_key = "block_number",
     cluster_by = "block_timestamp::date, _inserted_timestamp::date",
     post_hook = "ALTER TABLE {{ this }} ADD SEARCH OPTIMIZATION",
-    full_refresh = false,
-    tags = ['core','non_realtime']
+    tags = ['non_realtime']
 ) }}
+--    full_refresh = false
 
 WITH bronze_traces AS (
 
@@ -415,4 +415,4 @@ SELECT
 FROM
     FINAL qualify(ROW_NUMBER() over(PARTITION BY block_number, tx_position, trace_index
 ORDER BY
-    _inserted_timestamp DESC, is_pending ASC)) = 1 #}
+    _inserted_timestamp DESC, is_pending ASC)) = 1
