@@ -10,6 +10,7 @@
 
 SELECT
     DATA,
+    result,
     block_number,
     utils.udf_hex_to_int(
         DATA :result :baseFeePerGas :: STRING

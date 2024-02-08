@@ -24,6 +24,7 @@ SELECT
         'quicknode_blast_testnet'
     ) AS resp,
     resp :data AS DATA,
+    resp :data :result AS result,
     SYSDATE() AS _inserted_timestamp
 FROM
     num_seq
