@@ -30,10 +30,23 @@ bronze AS (
             'jsonrpc' :'2.0' },
             'quicknode_blast_testnet'
         ) AS resp,
-        resp :data AS DATA,
+        resp :data :result :transactions AS resp_data,
         SYSDATE() AS _inserted_timestamp
     FROM
         num_seq
+),
+bronze_tx AS (
+    SELECT
+        block_number,
+        resp,
+        resp_data,
+        VALUE AS DATA,
+        _inserted_timestamp
+    FROM
+        bronze,
+        LATERAL FLATTEN (
+            input => resp_data
+        )
 ),
 {# base AS (
 SELECT
@@ -60,7 +73,7 @@ WHERE
 ),
 #}
 --newcolumns (confirm data types and pull through CTEs, add to ymls)
---mint, depositReceiptVersion, yParity, sourceHash 
+--mint, depositReceiptVersion, yParity, sourceHash
 base_tx AS (
     SELECT
         block_number,
@@ -157,7 +170,7 @@ base_tx AS (
         _INSERTED_TIMESTAMP,
         DATA
     FROM
-        base
+        bronze_tx
 ),
 new_records AS (
     SELECT
