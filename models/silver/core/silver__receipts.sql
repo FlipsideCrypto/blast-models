@@ -21,8 +21,8 @@ WITH num_seq AS (
 bronze AS (
     SELECT
         block_number,
-        blast_dev.utils.udf_int_to_hex(block_number) AS block_hex,
-        blast_dev.live.udf_api(
+        utils.udf_int_to_hex(block_number) AS block_hex,
+        live.udf_api(
             'POST',
             '{blast_testnet_url}',{},{ 'method' :'eth_getBlockReceipts',
             'params' :[ block_hex ],
