@@ -24,7 +24,7 @@ bronze AS (
         live.udf_api(
             'POST',
             '{blast_testnet_url}',{},{ 'method' :'eth_getBlockByNumber',
-            'params' :[ block_number, False ],
+            'params' :[ block_hex, False ],
             'id' :1,
             'jsonrpc' :'2.0' },
             'quicknode_blast_testnet'

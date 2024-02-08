@@ -1,4 +1,4 @@
-{# -- depends_on: {{ ref('bronze__streamline_transactions') }}
+{# -- depends_on: {{ ref('bronze__streamline_transactions') }} #}
 {{ config(
     materialized = 'incremental',
     incremental_strategy = 'delete+insert',
@@ -7,16 +7,40 @@
     post_hook = "ALTER TABLE {{ this }} ADD SEARCH OPTIMIZATION",
     tags = ['non_realtime']
 ) }}
-
 --    full_refresh = false
-
-WITH base AS (
+WITH num_seq AS (
 
     SELECT
-        block_number,
-        DATA,
-        _inserted_timestamp
+        _id AS block_number
     FROM
+        {{ ref('silver__number_sequence') }}
+    WHERE
+        _id > 1300000
+        AND _id <= 1300010
+),
+bronze AS (
+    SELECT
+        block_number AS block_number,
+        blast_dev.utils.udf_int_to_hex(block_number) AS block_hex,
+        live.udf_api(
+            'POST',
+            '{blast_testnet_url}',{},{ 'method' :'eth_getBlockByNumber',
+            'params' :[ block_hex, True ],
+            'id' :1,
+            'jsonrpc' :'2.0' },
+            'quicknode_blast_testnet'
+        ) AS resp,
+        resp :data AS DATA,
+        SYSDATE() AS _inserted_timestamp
+    FROM
+        num_seq
+),
+{# base AS (
+SELECT
+    block_number,
+    DATA,
+    _inserted_timestamp
+FROM
 
 {% if is_incremental() %}
 {{ ref('bronze__streamline_transactions') }}
@@ -34,30 +58,38 @@ WHERE
     IS_OBJECT(DATA)
 {% endif %}
 ),
+#}
+--newcolumns (confirm data types and pull through CTEs, add to ymls)
+--mint, depositReceiptVersion, yParity, sourceHash
 base_tx AS (
     SELECT
-        A.block_number AS block_number,
-        A.data :blockHash :: STRING AS block_hash,
+        block_number,
+        DATA :blockHash :: STRING AS block_hash,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :blockNumber :: STRING
+                DATA :blockNumber :: STRING
             )
         ) AS blockNumber,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :chainId :: STRING
+                DATA: depositReceiptVersion :: STRING
             )
-        ) AS chain_id,
-        A.data :from :: STRING AS from_address,
+        ) AS deposit_receipt_version,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :gas :: STRING
+                DATA :chainId :: STRING
+            )
+        ) AS chain_id,
+        DATA :from :: STRING AS from_address,
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                DATA :gas :: STRING
             )
         ) AS gas,
         COALESCE(
             TRY_TO_NUMBER(
                 utils.udf_hex_to_int(
-                    A.data :gasPrice :: STRING
+                    DATA :gasPrice :: STRING
                 )
             ) / pow(
                 10,
@@ -65,8 +97,8 @@ base_tx AS (
             ),
             0
         ) AS gas_price,
-        A.data :hash :: STRING AS tx_hash,
-        A.data :input :: STRING AS input_data,
+        DATA :hash :: STRING AS tx_hash,
+        DATA :input :: STRING AS input_data,
         SUBSTR(
             input_data,
             1,
@@ -74,7 +106,12 @@ base_tx AS (
         ) AS origin_function_signature,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :maxFeePerGas :: STRING
+                DATA :mint :: STRING
+            )
+        ) AS mint,
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                DATA :maxFeePerGas :: STRING
             )
         ) / pow(
             10,
@@ -82,7 +119,7 @@ base_tx AS (
         ) AS max_fee_per_gas,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :maxPriorityFeePerGas :: STRING
+                DATA :maxPriorityFeePerGas :: STRING
             )
         ) / pow(
             10,
@@ -90,35 +127,37 @@ base_tx AS (
         ) AS max_priority_fee_per_gas,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :nonce :: STRING
+                DATA :nonce :: STRING
             )
         ) AS nonce,
-        A.data :r :: STRING AS r,
-        A.data :s :: STRING AS s,
-        A.data :to :: STRING AS to_address1,
+        DATA :r :: STRING AS r,
+        DATA :s :: STRING AS s,
+        DATA :sourceHash :: STRING AS sourceHash,
+        DATA :to :: STRING AS to_address1,
         CASE
             WHEN to_address1 = '' THEN NULL
             ELSE to_address1
         END AS to_address,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
-                A.data :transactionIndex :: STRING
+                DATA :transactionIndex :: STRING
             )
         ) AS POSITION,
-        A.data :type :: STRING AS TYPE,
-        A.data :v :: STRING AS v,
+        DATA :type :: STRING AS TYPE,
+        DATA :v :: STRING AS v,
         utils.udf_hex_to_int(
-            A.data :value :: STRING
+            DATA :value :: STRING
         ) AS value_precise_raw,
         utils.udf_decimal_adjust(
             value_precise_raw,
             18
         ) AS value_precise,
         value_precise :: FLOAT AS VALUE,
-        A._INSERTED_TIMESTAMP,
-        A.data AS DATA
+        DATA :yParity :: STRING AS yParity,
+        _INSERTED_TIMESTAMP,
+        DATA
     FROM
-        base A
+        base
 ),
 new_records AS (
     SELECT
@@ -417,4 +456,4 @@ FROM
 WHERE
     block_hash IS NOT NULL qualify(ROW_NUMBER() over (PARTITION BY block_number, POSITION
 ORDER BY
-    _inserted_timestamp DESC, is_pending ASC)) = 1 #}
+    _inserted_timestamp DESC, is_pending ASC)) = 1
