@@ -64,7 +64,7 @@ SELECT
 FROM
 
 {% if is_incremental() %}
-{{ ref('bronze__streamline_blocks') }}
+{{ ref('bronze__streamline_blocks_testnet') }}
 WHERE
     _inserted_timestamp >= (
         SELECT
@@ -73,7 +73,7 @@ WHERE
             {{ this }}
     )
 {% else %}
-    {{ ref('bronze__streamline_FR_blocks') }}
+    {{ ref('bronze__streamline_FR_blocks_testnet') }}
 {% endif %}
 
 qualify(ROW_NUMBER() over (PARTITION BY block_number

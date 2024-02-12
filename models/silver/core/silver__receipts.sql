@@ -17,7 +17,7 @@ WITH base AS (
     FROM
 
 {% if is_incremental() %}
-{{ ref('bronze__streamline_receipts') }}
+{{ ref('bronze__streamline_receipts_testnet') }}
 WHERE
     _inserted_timestamp >= (
         SELECT
@@ -27,7 +27,7 @@ WHERE
     )
     AND IS_OBJECT(DATA)
 {% else %}
-    {{ ref('bronze__streamline_FR_receipts') }}
+    {{ ref('bronze__streamline_FR_receipts_testnet') }}
 WHERE
     IS_OBJECT(DATA)
 {% endif %}

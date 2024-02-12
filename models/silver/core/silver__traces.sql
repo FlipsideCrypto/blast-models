@@ -20,7 +20,7 @@ WITH bronze_traces AS (
     FROM
 
 {% if is_incremental() %}
-{{ ref('bronze__streamline_traces') }}
+{{ ref('bronze__streamline_traces_testnet') }}
 WHERE
     _inserted_timestamp >= (
         SELECT
@@ -30,7 +30,7 @@ WHERE
     )
     {# AND DATA :result IS NOT NULL #}
 {% else %}
-    {{ ref('bronze__streamline_FR_traces') }}
+    {{ ref('bronze__streamline_FR_traces_testnet') }}
 {# WHERE
     _partition_by_block_id <= 2300000
     AND
