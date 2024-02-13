@@ -12,10 +12,8 @@ WITH bronze_traces AS (
 
     SELECT
         block_number,
-        tx_position,
-        full_traces,
-        {# VALUE :array_index :: INT AS tx_position,
-        DATA :result AS full_traces, #}
+        VALUE :array_index :: INT AS tx_position,
+        DATA :result AS full_traces,
         _inserted_timestamp
     FROM
 
