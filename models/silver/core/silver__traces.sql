@@ -1,4 +1,4 @@
--- depends_on: {{ ref('bronze__streamline_traces') }}
+-- depends_on: {{ ref('bronze__streamline_traces_testnet') }}
 {{ config (
     materialized = "incremental",
     incremental_strategy = 'delete+insert',

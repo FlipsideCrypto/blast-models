@@ -47,7 +47,7 @@ tbl AS (
     SELECT
         block_number
     FROM
-        {{ ref("streamline__complete_confirmed_blocks_testnet") }}
+        {{ ref("streamline__complete_confirmed_blocks") }}
     WHERE
         block_number IS NOT NULL
         AND block_number <= (

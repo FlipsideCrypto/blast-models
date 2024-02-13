@@ -30,7 +30,7 @@ blocks AS (
     SELECT
         block_number
     FROM
-        {{ ref("streamline__complete_receipts_testnet") }}
+        {{ ref("streamline__complete_receipts") }}
     WHERE
         block_number <= (
             SELECT

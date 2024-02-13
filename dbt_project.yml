@@ -28,7 +28,7 @@ tests:
   +store_failures: true # all tests
 
 on-run-start:
-  # - "{{ create_sps() }}"
+  - "{{ create_sps() }}"
   - "{{ create_udfs() }}"
 
 on-run-end:

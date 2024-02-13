@@ -34,7 +34,7 @@ blocks AS (
         id,
         block_number
     FROM
-        {{ ref("streamline__complete_blocks_testnet") }}
+        {{ ref("streamline__complete_blocks") }}
     WHERE
         block_number <= (
             SELECT

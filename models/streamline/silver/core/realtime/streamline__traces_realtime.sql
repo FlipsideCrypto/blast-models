@@ -33,7 +33,7 @@ to_do AS (
     SELECT
         block_number
     FROM
-        {{ ref("streamline__complete_traces_testnet") }}
+        {{ ref("streamline__complete_traces") }}
     WHERE
         block_number >= (
             SELECT

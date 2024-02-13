@@ -1,4 +1,4 @@
--- depends_on: {{ ref('bronze__streamline_confirm_blocks') }}
+-- depends_on: {{ ref('bronze__streamline_confirm_blocks_testnet') }}
 {{ config (
     materialized = "incremental",
     unique_key = "id",
