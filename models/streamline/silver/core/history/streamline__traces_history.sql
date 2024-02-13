@@ -60,6 +60,6 @@ SELECT
             )
         ) AS request
         FROM
-            ready_blocks
+            blocks
         ORDER BY
             block_number ASC

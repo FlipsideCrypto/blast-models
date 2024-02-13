@@ -69,6 +69,6 @@ SELECT
         )
     ) AS request
 FROM
-    to_do
+    blocks
 ORDER BY
     block_number ASC

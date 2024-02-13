@@ -3,13 +3,23 @@
     tags = ['streamline_core_complete']
 ) }}
 
-{% if execute %}
-    {% set height = run_query('SELECT streamline.udf_get_chainhead()') %}
-    {% set block_height = height.columns [0].values() [0] %}
-{% else %}
-    {% set block_height = 0 %}
-{% endif %}
+WITH get_chainhead AS (
 
+    SELECT
+        live.udf_api(
+            'POST',
+            '{blast_testnet_url}',
+            --update for prod
+            {},{ 'method' :'eth_blockNumber',
+            'params' :[],
+            'id' :1,
+            'jsonrpc' :'2.0' },
+            'quicknode_blast_testnet' --update for prod
+        ) AS resp,
+        utils.udf_hex_to_int(
+            resp :data :result :: STRING
+        ) AS block_number
+)
 SELECT
     _id AS block_number,
     REPLACE(
@@ -20,6 +30,14 @@ SELECT
 FROM
     {{ ref("silver__number_sequence") }}
 WHERE
-    _id <= {{ block_height }}
+    _id <= (
+        SELECT
+            COALESCE(
+                block_number,
+                0
+            )
+        FROM
+            get_chainhead
+    )
 ORDER BY
     _id ASC
