@@ -45,7 +45,7 @@ SELECT
         block_number,
         ARRAY_CONSTRUCT(
             'POST',
-            '{service}/{Authentication}/',
+            '{service}/{Authentication}',
             PARSE_JSON('{}'),
             PARSE_JSON('{}'),
             OBJECT_CONSTRUCT(
