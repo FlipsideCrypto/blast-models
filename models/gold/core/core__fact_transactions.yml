@@ -77,5 +77,6 @@ models:
       - name: DEPOSIT_RECEIPT_VERSION
         description: The version of the deposit receipt.
       - name: MINT
+        description: Decimal adjusted.
       - name: SOURCE_HASH
       - name: Y_PARITY

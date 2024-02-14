@@ -75,11 +75,14 @@ base_tx AS (
             1,
             10
         ) AS origin_function_signature,
-        TRY_TO_NUMBER(
-            utils.udf_hex_to_int(
+        utils.udf_hex_to_int(
                 DATA :mint :: STRING
-            )
-        ) AS mint,
+            ) AS mint_precise_raw,
+        utils.udf_decimal_adjust(
+            mint_precise_raw,
+            18
+        ) AS mint_precise,
+        mint_precise :: FLOAT AS mint,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
                 DATA :maxFeePerGas :: STRING
@@ -141,6 +144,8 @@ new_records AS (
         t.tx_hash,
         t.input_data,
         t.origin_function_signature,
+        t.mint_precise_raw,
+        t.mint_precise,
         t.mint,
         t.max_fee_per_gas,
         t.max_priority_fee_per_gas,
@@ -222,6 +227,8 @@ missing_data AS (
         t.tx_hash,
         t.input_data,
         t.origin_function_signature,
+        t.mint_precise_raw,
+        t.mint_precise,
         t.mint,
         t.max_fee_per_gas,
         t.max_priority_fee_per_gas,
@@ -296,6 +303,8 @@ FINAL AS (
         tx_hash,
         input_data,
         origin_function_signature,
+        mint_precise_raw,
+        mint_precise,
         mint,
         max_fee_per_gas,
         max_priority_fee_per_gas,
@@ -344,6 +353,8 @@ SELECT
     tx_hash,
     input_data,
     origin_function_signature,
+    mint_precise_raw,
+    mint_precise,
     mint,
     max_fee_per_gas,
     max_priority_fee_per_gas,
@@ -391,6 +402,8 @@ SELECT
     tx_hash,
     input_data,
     origin_function_signature,
+    mint_precise_raw,
+    mint_precise,
     mint,
     max_fee_per_gas,
     max_priority_fee_per_gas,
