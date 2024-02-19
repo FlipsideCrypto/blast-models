@@ -66,21 +66,22 @@ SELECT
             'application/json'
         ),
         'params',
-        '{}',
+        PARSE_JSON('{}'),
         'data',
-        OBJECT_CONSTRUCT(
-            'id',
-            '1',
-            'jsonrpc',
-            '2.0',
-            'method',
-            'eth_getBlockByNumber',
-            'params',
-            ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), FALSE))
-        ) AS request
-        FROM
-            to_do
-        ORDER BY
-            partition_key ASC
-        LIMIT
-            10
+        {# OBJECT_CONSTRUCT(
+        'id',
+        '1',
+        'jsonrpc',
+        '2.0',
+        'method',
+        'eth_getBlockByNumber',
+        'params',
+        ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), FALSE))
+    ) AS request #}
+    '{ "id": "1", "jsonrpc": "2.0", "method": "eth_getBlockByNumber", "params": ["0x0", false] }') AS request
+FROM
+    to_do
+ORDER BY
+    partition_key ASC
+LIMIT
+    1000
