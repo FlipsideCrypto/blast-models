@@ -54,33 +54,33 @@ to_do AS (
         )
 )
 SELECT
-    id,
-    block_number,
-    ARRAY_CONSTRUCT(
-        block_number,
-        ARRAY_CONSTRUCT(
-            'POST',
-            '{service}/{Authentication}',
-            PARSE_JSON('{}'),
-            PARSE_JSON('{}'),
-            OBJECT_CONSTRUCT(
-                'method',
-                'eth_getBlockByNumber',
-                'params',
-                ARRAY_CONSTRUCT(
-                    utils.udf_int_to_hex(block_number),
-                    FALSE
-                ),
-                'id',
-                '1',
-                'jsonrpc',
-                '2.0'
-            )
-        )
-    ) AS request
-FROM
-    to_do
-ORDER BY
-    block_number ASC
-LIMIT
-    1000
+    block_number AS partition_key,
+    OBJECT_CONSTRUCT(
+        'method',
+        'POST',
+        'url',
+        '{service}/{Authentication}',
+        'headers',
+        OBJECT_CONSTRUCT(
+            'Content-Type',
+            'application/json'
+        ),
+        'params',
+        '{}',
+        'data',
+        OBJECT_CONSTRUCT(
+            'id',
+            '1',
+            'jsonrpc',
+            '2.0',
+            'method',
+            'eth_getBlockByNumber',
+            'params',
+            ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), FALSE))
+        ) AS request
+        FROM
+            to_do
+        ORDER BY
+            partition_key ASC
+        LIMIT
+            10
