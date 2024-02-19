@@ -81,33 +81,33 @@ ready_blocks AS (
         )
 )
 SELECT
-    id,
-    block_number,
-    ARRAY_CONSTRUCT(
-        block_number,
-        ARRAY_CONSTRUCT(
-            'POST',
-            '{service}/{Authentication}',
-            PARSE_JSON('{}'),
-            PARSE_JSON('{}'),
-            OBJECT_CONSTRUCT(
-                'method',
-                'eth_getBlockByNumber',
-                'params',
-                ARRAY_CONSTRUCT(
-                    utils.udf_int_to_hex(block_number),
-                    TRUE
-                ),
-                'id',
-                '1',
-                'jsonrpc',
-                '2.0'
-            )
-        )
-    ) AS request
-FROM
-    ready_blocks
-ORDER BY
-    block_number ASC
-LIMIT
-    1000
+    block_number AS partition_key,
+    OBJECT_CONSTRUCT(
+        'method',
+        'POST',
+        'url',
+        '{service}/{Authentication}',
+        'headers',
+        OBJECT_CONSTRUCT(
+            'Content-Type',
+            'application/json'
+        ),
+        'params',
+        PARSE_JSON('{}'),
+        'data',
+        OBJECT_CONSTRUCT(
+            'id',
+            '1',
+            'jsonrpc',
+            '2.0',
+            'method',
+            'eth_getBlockByNumber',
+            'params',
+            ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), TRUE)) :: STRING
+        ) AS request
+        FROM
+            ready_blocks
+        ORDER BY
+            block_number ASC
+        LIMIT
+            1000

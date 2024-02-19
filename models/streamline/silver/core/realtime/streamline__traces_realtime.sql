@@ -69,24 +69,29 @@ ready_blocks AS (
         )
 )
 SELECT
-    block_number,
-    ARRAY_CONSTRUCT(
-        block_number,
-        ARRAY_CONSTRUCT(
-            'POST',
-            '{service}/{Authentication}',
-            PARSE_JSON('{}'),
-            PARSE_JSON('{}'),
-            OBJECT_CONSTRUCT(
-                'method',
-                'debug_traceBlockByNumber',
-                'params',
-                ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), '{"tracer": "callTracer", "timeout": "30s"}'),
-                'id',
-                '1',
-                'jsonrpc',
-                '2.0')
-            )
+    block_number AS partition_key,
+    OBJECT_CONSTRUCT(
+        'method',
+        'POST',
+        'url',
+        '{service}/{Authentication}',
+        'headers',
+        OBJECT_CONSTRUCT(
+            'Content-Type',
+            'application/json'
+        ),
+        'params',
+        PARSE_JSON('{}'),
+        'data',
+        OBJECT_CONSTRUCT(
+            'id',
+            '1',
+            'jsonrpc',
+            '2.0',
+            'method',
+            'debug_traceBlockByNumber',
+            'params',
+            ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), '{"tracer": "callTracer", "timeout": "30s"}')) :: STRING
         ) AS request
         FROM
             ready_blocks
