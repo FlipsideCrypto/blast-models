@@ -17,7 +17,7 @@
                 ) A
             )
         SELECT
-            {{ unique_key }},
+            {{ unique_key }} AS block_number,
             DATA,
             _inserted_timestamp,
             MD5(
@@ -76,7 +76,7 @@
             ) A
     )
 SELECT
-    {{ unique_key }},
+    {{ unique_key }} AS block_number,
     DATA,
     _inserted_timestamp,
     MD5(

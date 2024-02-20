@@ -1,5 +1,5 @@
 name: dbt_run_deployment
-run-name: dbt_run_deployment
+run-name: ${{ inputs.dbt_command }}
 
 on:
   workflow_dispatch:
