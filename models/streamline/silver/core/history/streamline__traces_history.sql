@@ -62,9 +62,10 @@ SELECT
             'method',
             'debug_traceBlockByNumber',
             'params',
-            ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), '{"tracer": "callTracer", "timeout": "30s"}')) :: STRING
-        ) AS request
-        FROM
-            blocks
-        ORDER BY
-            block_number ASC
+            ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), OBJECT_CONSTRUCT('tracer', 'callTracer', 'timeout', '30s'))
+        ) :: STRING
+    ) AS request
+FROM
+    blocks
+ORDER BY
+    block_number ASC
