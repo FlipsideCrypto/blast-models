@@ -11,8 +11,8 @@ WITH base AS (
 
     SELECT
         block_number,
-        DATA :hash :: STRING AS block_hash,
-        DATA :transactions txs,
+        DATA :result :hash :: STRING AS block_hash,
+        DATA :result :transactions txs,
         _inserted_timestamp
     FROM
 
