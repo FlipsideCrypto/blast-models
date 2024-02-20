@@ -56,7 +56,7 @@ SELECT
         'data',
         OBJECT_CONSTRUCT(
             'id',
-            '1',
+            block_number :: STRING,
             'jsonrpc',
             '2.0',
             'method',
