@@ -18,6 +18,11 @@ sources:
       - name: debug_traceBlockByNumber
       - name: decoded_logs
       - name: confirm_blocks
+      - name: receipts_testnet
+      - name: blocks_testnet
+      - name: transactions_testnet
+      - name: traces_testnet
+      - name: confirm_blocks_testnet
   - name: udfs_streamline
     database: udfs
     schema: streamline

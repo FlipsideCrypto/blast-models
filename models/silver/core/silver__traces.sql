@@ -1,4 +1,4 @@
--- depends_on: {{ ref('bronze__streamline_traces') }}
+-- depends_on: {{ ref('bronze__streamline_traces_testnet') }}
 {{ config (
     materialized = "incremental",
     incremental_strategy = 'delete+insert',
@@ -12,15 +12,13 @@ WITH bronze_traces AS (
 
     SELECT
         block_number,
-        tx_position,
-        full_traces,
-        {# VALUE :array_index :: INT AS tx_position,
-        DATA :result AS full_traces, #}
+        VALUE :array_index :: INT AS tx_position,
+        DATA :result AS full_traces,
         _inserted_timestamp
     FROM
 
 {% if is_incremental() %}
-{{ ref('bronze__streamline_traces') }}
+{{ ref('bronze__streamline_traces_testnet') }}
 WHERE
     _inserted_timestamp >= (
         SELECT
@@ -28,13 +26,13 @@ WHERE
         FROM
             {{ this }}
     )
-    {# AND DATA :result IS NOT NULL #}
+    AND DATA :result IS NOT NULL
 {% else %}
-    {{ ref('bronze__streamline_FR_traces') }}
-{# WHERE
-    _partition_by_block_id <= 2300000
-    AND
-    DATA :result IS NOT NULL #}
+    {{ ref('bronze__streamline_FR_traces_testnet') }}
+WHERE
+    {# _partition_by_block_id <= 2300000
+    AND #}
+    DATA :result IS NOT NULL
 {% endif %}
 
 qualify(ROW_NUMBER() over (PARTITION BY block_number, tx_position
