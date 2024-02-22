@@ -110,4 +110,4 @@ SELECT
         ORDER BY
             block_number ASC
         LIMIT
-            1000 --remove for prod
+            1200 --remove for prod

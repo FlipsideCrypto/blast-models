@@ -83,4 +83,4 @@ SELECT
         ORDER BY
             partition_key ASC
         LIMIT
-            1000 --remove for prod
+            1200 --remove for prod
