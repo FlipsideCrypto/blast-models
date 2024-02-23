@@ -1,4 +1,4 @@
-{% macro create_aws_base_api() %}
+{% macro create_aws_blast_api() %}
     {{ log(
         "Creating integration for target:" ~ target
     ) }}
