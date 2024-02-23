@@ -6,7 +6,7 @@
 SELECT
     live.udf_api(
         'POST',
-        '{service}{Authentication}',{},{ 'method' :'eth_blockNumber',
+        '{service}/{Authentication}',{},{ 'method' :'eth_blockNumber',
         'params' :[],
         'id' :1,
         'jsonrpc' :'2.0' },
