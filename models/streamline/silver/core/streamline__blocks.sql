@@ -22,5 +22,6 @@ WHERE
         FROM
             {{ref("streamline__get_chainhead")}}
     )
+    AND _id >= 2000000
 ORDER BY
     _id ASC

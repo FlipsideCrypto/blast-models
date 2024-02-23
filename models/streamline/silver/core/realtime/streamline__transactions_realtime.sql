@@ -109,5 +109,3 @@ SELECT
             ready_blocks
         ORDER BY
             block_number ASC
-        LIMIT
-            1200 --remove for prod
