@@ -69,5 +69,3 @@ FROM
     blocks
 ORDER BY
     block_number ASC
-LIMIT
-    1000 --remove for prod
