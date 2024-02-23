@@ -98,5 +98,3 @@ FROM
     ready_blocks
 ORDER BY
     block_number ASC
-LIMIT
-    7500 
