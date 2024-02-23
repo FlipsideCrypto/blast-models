@@ -15,6 +15,7 @@ sources:
       - name: receipts
       - name: blocks
       - name: transactions
+      - name: traces
       - name: debug_traceBlockByNumber
       - name: decoded_logs
       - name: confirm_blocks

@@ -1,4 +1,4 @@
--- depends_on: {{ ref('bronze__streamline_traces_testnet') }}
+-- depends_on: {{ ref('bronze__streamline_traces') }}
 {{ config (
     materialized = "incremental",
     unique_key = "id",
@@ -14,7 +14,7 @@ SELECT
 FROM
 
 {% if is_incremental() %}
-{{ ref('bronze__streamline_traces_testnet') }}
+{{ ref('bronze__streamline_traces') }}
 WHERE
     _inserted_timestamp >= (
         SELECT
@@ -23,7 +23,7 @@ WHERE
             {{ this }}
     )
 {% else %}
-    {{ ref('bronze__streamline_FR_traces_testnet') }}
+    {{ ref('bronze__streamline_FR_traces') }}
 {% endif %}
 
 qualify(ROW_NUMBER() over (PARTITION BY id
