@@ -15,14 +15,9 @@ sources:
       - name: receipts
       - name: blocks
       - name: transactions
-      - name: debug_traceBlockByNumber
+      - name: traces
       - name: decoded_logs
       - name: confirm_blocks
-      - name: receipts_testnet
-      - name: blocks_testnet
-      - name: transactions_testnet
-      - name: traces_testnet
-      - name: confirm_blocks_testnet
   - name: udfs_streamline
     database: udfs
     schema: streamline
@@ -54,11 +49,6 @@ sources:
     schema: bronze_public
     tables:
       - name: user_abis
-  - name: streamline_crosschain
-    database: streamline
-    schema: crosschain
-    tables:
-      - name: node_mapping
   - name: blast_silver
     database: blast
     schema: silver

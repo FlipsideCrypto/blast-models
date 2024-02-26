@@ -10,7 +10,7 @@ SELECT
         'params' :[],
         'id' :1,
         'jsonrpc' :'2.0' },
-        'vault/prod/blast/node/testnet'
+        'vault/prod/blast/mainnet'
     ) AS resp,
     utils.udf_hex_to_int(
         resp :data :result :: STRING

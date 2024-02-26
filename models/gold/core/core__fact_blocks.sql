@@ -7,7 +7,7 @@
 SELECT
     A.block_number AS block_number,
     block_timestamp,
-    'testnet' AS network,
+    'mainnet' AS network,
     'blast' AS blockchain,
     d.tx_count,
     difficulty,
