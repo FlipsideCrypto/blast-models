@@ -4,9 +4,9 @@
     unique_key = "block_number",
     cluster_by = "block_timestamp::date",
     tags = ['non_realtime'],
-    merge_exclude_columns = ["inserted_timestamp"]
+    merge_exclude_columns = ["inserted_timestamp"],
+    full_refresh = false
 ) }}
---     full_refresh = false
 
 SELECT
     DATA,
