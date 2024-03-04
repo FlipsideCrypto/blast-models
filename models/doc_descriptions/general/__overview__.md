@@ -16,13 +16,27 @@ There is more information on how to use dbt docs in the last section of this doc
 
 **Click on the links below to jump to the documentation for each schema.**
 
-### Core Tables
+### Core Tables (blast.core)
+
+**Dimension Tables:**
+- [dim_contracts](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__dim_contracts)
 
 **Fact Tables:**
 - [fact_blocks](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__fact_blocks)
-- [fact_transactions](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__fact_transactions)
 - [fact_event_logs](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__fact_event_logs)
 - [fact_traces](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__fact_traces)
+- [fact_transactions](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__fact_transactions)
+- [fact_token_transfers](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__fact_token_transfers)
+
+**Convenience Tables:**
+- [ez_native_transfers](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__ez_native_transfers)
+- [ez_token_transfers](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__ez_token_transfers)
+
+### Price Tables (blast.price)
+- [fact_hourly_token_prices](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__fact_hourly_token_prices)
+- [ez_hourly_token_prices](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__ez_hourly_token_prices)
+- [dim_asset_metadata](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__dim_asset_metadata)
+- [ez_asset_metadata](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__ez_asset_metadata)
 
 ## **Helpful User-Defined Functions (UDFs)**
 
