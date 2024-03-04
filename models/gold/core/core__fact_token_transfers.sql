@@ -17,7 +17,6 @@ SELECT
     to_address,
     raw_amount,
     raw_amount_precise,
-    _log_id,
     COALESCE (
         transfers_id,
         {{ dbt_utils.generate_surrogate_key(
