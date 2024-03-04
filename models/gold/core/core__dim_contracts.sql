@@ -13,12 +13,7 @@ SELECT
     c0.block_timestamp AS created_block_timestamp,
     c0.tx_hash AS created_tx_hash,
     c0.creator_address AS creator_address,
-    COALESCE (
-        c0.created_contracts_id,
-        {{ dbt_utils.generate_surrogate_key(
-            ['c0.created_contract_address']
-        ) }}
-    ) AS dim_contracts_id,
+    c0.created_contracts_id AS dim_contracts_id,
     GREATEST(COALESCE(c0.inserted_timestamp, '2000-01-01'), COALESCE(c1.inserted_timestamp, '2000-01-01')) AS inserted_timestamp,
     GREATEST(COALESCE(c0.modified_timestamp, '2000-01-01'), COALESCE(c1.modified_timestamp, '2000-01-01')) AS modified_timestamp
 FROM
