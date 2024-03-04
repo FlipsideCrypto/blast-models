@@ -20,6 +20,7 @@ There is more information on how to use dbt docs in the last section of this doc
 
 **Dimension Tables:**
 - [dim_contracts](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__dim_contracts)
+- [dim_labels](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__dim_labels)
 
 **Fact Tables:**
 - [fact_blocks](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__fact_blocks)
