@@ -2,7 +2,7 @@
     CREATE
     OR REPLACE EXTERNAL FUNCTION streamline.udf_rest_api(
         json OBJECT
-    ) returns ARRAY api_integration = 
+    ) returns ARRAY api_integration =
     {% if target.name == "prod" %}
         aws_blast_api AS 'https://42gzudc5si.execute-api.us-east-1.amazonaws.com/prod/udf_bulk_rest_api'
     {% else %}
