@@ -71,7 +71,7 @@ api_pull AS (
     SELECT
         PARSE_JSON(
             live.udf_api(
-                'https://gateway.prod.vertexprotocol.com/api/v2/assets'
+                'https://gateway.blast-prod.vertexprotocol.com/api/v2/assets'
             )
         ) :data AS response
 ),
@@ -105,12 +105,11 @@ FINAL AS (
             ELSE 'spot'
         END AS product_type,
         CASE
-            WHEN l.product_id = 0 THEN 'USDC'
+            WHEN l.product_id = 0 THEN 'USDB'
             ELSE p.ticker_id :: STRING 
         END AS ticker_id,
         p.symbol :: STRING AS symbol,
         p.name :: STRING AS NAME,
-        C.book_address,
         CASE
             WHEN l.product_id = 0 THEN NULL
             ELSE FLOOR((l.product_id - 1) / 2)
@@ -145,7 +144,7 @@ SELECT
     *,
     {{ dbt_utils.generate_surrogate_key(
         ['tx_hash','product_id']
-    ) }} AS vertex_products_id,
+    ) }} AS blitz_products_id,
     SYSDATE() AS inserted_timestamp,
     SYSDATE() AS modified_timestamp,
     '{{ invocation_id }}' AS _invocation_id
