@@ -1,0 +1,62 @@
+version: 2
+models:
+  - name: blitz__ez_liquidations
+    description: '{{ doc("blitz_ez_liquidations") }}'
+
+    columns:
+      - name: BLOCK_NUMBER
+        description: '{{ doc("arb_block_number") }}'
+      - name: BLOCK_TIMESTAMP
+        description: '{{ doc("arb_block_timestamp") }}'
+      - name: TX_HASH
+        description: '{{ doc("arb_logs_tx_hash") }}'
+      - name: CONTRACT_ADDRESS
+        description: '{{ doc("arb_logs_contract_address") }}'
+      - name: EVENT_NAME
+        description: '{{ doc("arb_event_name") }}'
+      - name: EVENT_INDEX
+        description: '{{ doc("arb_event_index") }}'
+      - name: ORIGIN_FUNCTION_SIGNATURE
+        description: '{{ doc("nft_origin_sig") }}'
+      - name: ORIGIN_FROM_ADDRESS
+        description: '{{ doc("arb_origin_from") }}'
+      - name: ORIGIN_TO_ADDRESS
+        description: '{{ doc("arb_origin_to") }}'
+      - name: DIGEST
+        description: '{{ doc("blitz_digest") }}'
+      - name: TRADER
+        description: '{{ doc("blitz_trader") }}'
+      - name: SUBACCOUNT
+        description: '{{ doc("blitz_subaccount") }}'
+      - name: VERSION
+        description: '{{ doc("blitz_version") }}'
+      - name: MODE
+        description: '{{ doc("blitz_mode") }}'
+      - name: PRODUCT_ID
+        description: '{{ doc("blitz_product_id_liq") }}'
+      - name: HEALTH_GROUP  
+        description: '{{ doc("blitz_health_group") }}'
+      - name: HEALTH_GROUP_SYMBOL
+        description: '{{ doc("blitz_health_group_symbol") }}'
+      - name: AMOUNT_UNADJ
+        description: '{{ doc("blitz_amount_unadj") }}'
+      - name: AMOUNT
+        description: '{{ doc("blitz_amount") }}'
+      - name: AMOUNT_QUOTE_UNADJ
+        description: '{{ doc("blitz_amount_quote_unadj") }}'
+      - name: AMOUNT_QUOTE
+        description: '{{ doc("blitz_amount_quote") }}'
+      - name: INSURANCE_COVER_UNADJ
+        description: '{{ doc("blitz_insurance_cover_unadj") }}'
+      - name: INSURANCE_COVER
+        description: '{{ doc("blitz_insurance_cover") }}'
+      - name: IS_ENCODE_SPREAD
+        description: '{{ doc("blitz_is_encode_spread") }}'
+      - name: SPREAD_PRODUCT_IDS
+        description: '{{ doc("blitz_decoded_spread_product_ids") }}'
+      - name: EZ_LIQUIDATIONS_ID
+        description: '{{ doc("pk") }}'
+      - name: INSERTED_TIMESTAMP
+        description: '{{ doc("inserted_timestamp") }}'   
+      - name: MODIFIED_TIMESTAMP
+        description: '{{ doc("modified_timestamp") }}' 
