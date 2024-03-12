@@ -106,7 +106,7 @@ FINAL AS (
         END AS product_type,
         CASE
             WHEN l.product_id = 0 THEN 'USDB'
-            ELSE p.ticker_id :: STRING 
+            ELSE p.ticker_id :: STRING
         END AS ticker_id,
         p.symbol :: STRING AS symbol,
         p.name :: STRING AS NAME,

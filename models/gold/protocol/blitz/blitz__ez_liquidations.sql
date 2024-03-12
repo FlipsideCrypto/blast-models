@@ -5,7 +5,7 @@
     meta={
         'database_tags':{
             'table': {
-                'PROTOCOL': 'VERTEX',
+                'PROTOCOL': 'BLITZ',
                 'PURPOSE': 'CLOB, DEX, LIQUIDATION'
             }
         }
@@ -25,7 +25,6 @@ SELECT
     digest,
     trader,
     subaccount,
-    MODE,
     product_id,
     health_group,
     health_group_symbol,
@@ -33,8 +32,6 @@ SELECT
     amount,
     amount_quote_unadj,
     amount_quote,
-    insurance_cover_unadj,
-    insurance_cover,
     is_encoded_spread,
     spread_product_ids,
     blitz_liquidation_id AS ez_liquidations_id,

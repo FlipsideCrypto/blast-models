@@ -13,7 +13,6 @@ WITH blitz_products AS (
         block_timestamp,
         tx_hash,
         product_id :: STRING AS product_id,
-        book_address,
         product_type,
         ticker_id,
         symbol,

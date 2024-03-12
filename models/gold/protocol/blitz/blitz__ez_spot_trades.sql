@@ -5,7 +5,7 @@
     meta={
         'database_tags':{
             'table': {
-                'PROTOCOL': 'VERTEX',
+                'PROTOCOL': 'BLITZ',
                 'PURPOSE': 'CLOB, DEX, SPOT'
             }
         }

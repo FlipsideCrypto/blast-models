@@ -29,9 +29,7 @@ logs AS (
 {% if is_incremental() %}
 AND _inserted_timestamp >= (
     SELECT
-        MAX(
-            _inserted_timestamp
-        ) - INTERVAL '12 hours'
+        MAX(_inserted_timestamp) - INTERVAL '12 hours'
     FROM
         {{ this }}
 )
@@ -53,7 +51,6 @@ logs_pull_v2 AS (
             segmented_data [0] :: STRING
         ) :: INT AS product_id,
         topics [1] :: STRING AS digest,
-        NULL AS MODE,
         LEFT(
             topics [2] :: STRING,
             42
@@ -67,7 +64,6 @@ logs_pull_v2 AS (
             's2c',
             segmented_data [3] :: STRING
         ) :: INT AS amount_quote,
-        NULL AS insurance_cover,
         arbitrum.utils.udf_hex_to_int(
             segmented_data [1] :: STRING
         ) AS is_encoded_spread,
@@ -92,14 +88,12 @@ v2_blitz_decode AS (
         event_index,
         is_encoded_spread,
         digest,
-        MODE,
         trader,
         subaccount,
         amount,
         amount_quote,
-        insurance_cover,
         CASE
-            WHEN is_encoded_spread = 1 THEN arbitrum.UTILS.UDF_INT_TO_BINARY(product_id)
+            WHEN is_encoded_spread = 1 THEN arbitrum.utils.udf_int_to_binary(product_id)
             ELSE NULL
         END AS bin_product_ids,
         CASE
@@ -113,16 +107,16 @@ v2_blitz_decode AS (
                     )
                 )
                 ELSE NULL
-        END AS decoded_spread_product_ids,
-        CASE
-            WHEN is_encoded_spread = 1 THEN decoded_spread_product_ids [0] :: STRING
-            ELSE product_id
-        END AS product_id,
-        _log_id,
-        _inserted_timestamp
-    FROM
-        logs_pull_v2
-),
+            END AS decoded_spread_product_ids,
+            CASE
+                WHEN is_encoded_spread = 1 THEN decoded_spread_product_ids [0] :: STRING
+                ELSE product_id
+            END AS product_id,
+            _log_id,
+            _inserted_timestamp
+            FROM
+                logs_pull_v2
+        ),
 FINAL AS (
     SELECT
         block_number,
@@ -137,7 +131,6 @@ FINAL AS (
         digest,
         trader,
         subaccount,
-        MODE,
         l.product_id,
         p.health_group,
         p.health_group_symbol,
@@ -151,8 +144,6 @@ FINAL AS (
             10,
             18
         ) AS amount_quote,
-        NULL AS insurance_cover_unadj,
-        insurance_cover,
         CASE
             WHEN is_encoded_spread = 1 THEN TRUE
             ELSE FALSE
@@ -167,13 +158,13 @@ FINAL AS (
 )
     SELECT
         *,
-        {{ dbt_utils.generate_surrogate_key(
-            ['tx_hash','event_index']
-        ) }} AS blitz_liquidation_id,
+        {{ dbt_utils.generate_surrogate_key(['tx_hash','event_index']) }} AS blitz_liquidation_id,
         SYSDATE() AS inserted_timestamp,
         SYSDATE() AS modified_timestamp,
         '{{ invocation_id }}' AS _invocation_id
     FROM
-        FINAL qualify(ROW_NUMBER() over(PARTITION BY _log_id
-    ORDER BY
-        _inserted_timestamp DESC)) = 1
+        FINAL qualify ROW_NUMBER() over(
+            PARTITION BY _log_id
+            ORDER BY
+                _inserted_timestamp DESC
+        ) = 1

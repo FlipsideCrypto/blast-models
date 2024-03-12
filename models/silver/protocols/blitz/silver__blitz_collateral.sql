@@ -42,9 +42,7 @@ WITH logs_pull AS (
 {% if is_incremental() %}
 AND _inserted_timestamp >= (
     SELECT
-        MAX(
-            _inserted_timestamp
-        ) - INTERVAL '36 hours'
+        MAX(_inserted_timestamp) - INTERVAL '36 hours'
     FROM
         {{ this }}
 )
@@ -105,16 +103,8 @@ FINAL AS (
         A.symbol,
         A.token_address,
         amount AS amount_unadj,
-        amount / pow(
-            10,
-            18
-        ) AS amount,
-        (
-            amount / pow(
-                10,
-                18
-            ) * p.price
-        ) :: FLOAT AS amount_usd,
+        amount / pow(10, 18) AS amount,
+        (amount / pow(10, 18) * p.price) :: FLOAT AS amount_usd,
         A._log_id,
         A._inserted_timestamp
     FROM
@@ -131,13 +121,13 @@ FINAL AS (
 )
 SELECT
     *,
-    {{ dbt_utils.generate_surrogate_key(
-        ['tx_hash','event_index']
-    ) }} AS blitz_collateral_id,
+    {{ dbt_utils.generate_surrogate_key(['tx_hash','event_index']) }} AS blitz_collateral_id,
     SYSDATE() AS inserted_timestamp,
     SYSDATE() AS modified_timestamp,
     '{{ invocation_id }}' AS _invocation_id
 FROM
-    FINAL qualify(ROW_NUMBER() over(PARTITION BY _log_id
-ORDER BY
-    _inserted_timestamp DESC)) = 1
+    FINAL qualify ROW_NUMBER() over(
+        PARTITION BY _log_id
+        ORDER BY
+            _inserted_timestamp DESC
+    ) = 1

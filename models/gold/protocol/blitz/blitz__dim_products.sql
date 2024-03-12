@@ -5,7 +5,7 @@
     meta={
         'database_tags':{
             'table': {
-                'PROTOCOL': 'VERTEX',
+                'PROTOCOL': 'BLITZ',
                 'PURPOSE': 'CLOB, DEX, PRODUCTS'
             }
         }
@@ -17,7 +17,6 @@ SELECT
     block_timestamp,
     tx_hash,
     product_id,
-    book_address,
     product_type,
     ticker_id,
     symbol,
