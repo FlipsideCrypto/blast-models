@@ -16,8 +16,7 @@ WITH blitz_products AS (
         product_type,
         ticker_id,
         symbol,
-        NAME,
-        version
+        NAME
     FROM
         {{ ref('silver__blitz_dim_products') }}
     WHERE

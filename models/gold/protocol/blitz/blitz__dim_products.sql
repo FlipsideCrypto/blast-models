@@ -21,7 +21,6 @@ SELECT
     ticker_id,
     symbol,
     name,
-    version,
     blitz_products_id AS dim_products_id,
     inserted_timestamp,
     modified_timestamp
