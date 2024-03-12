@@ -41,4 +41,4 @@ jobs:
           dbt deps
       - name: Run DBT Jobs
         run: |
-          dbt run -m "blast_models,tag:non_realtime" "blast_models,tag:streamline_decoded_logs_realtime"
+          dbt run --vars '{"STREAMLINE_INVOKE_STREAMS":True}' -m "blast_models,tag:non_realtime" "blast_models,tag:streamline_decoded_logs_complete" "blast_models,tag:streamline_decoded_logs_realtime"
