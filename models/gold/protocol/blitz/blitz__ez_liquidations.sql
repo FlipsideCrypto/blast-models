@@ -25,7 +25,6 @@ SELECT
     digest,
     trader,
     subaccount,
-    version,
     MODE,
     product_id,
     health_group,

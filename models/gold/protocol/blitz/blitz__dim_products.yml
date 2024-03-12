@@ -5,11 +5,11 @@ models:
 
     columns:
       - name: BLOCK_NUMBER
-        description: '{{ doc("arb_block_number") }}'
+        description: '{{ doc("blast_block_number") }}'
       - name: BLOCK_TIMESTAMP
-        description: '{{ doc("arb_block_timestamp") }}'
+        description: '{{ doc("blast_block_timestamp") }}'
       - name: TX_HASH
-        description: '{{ doc("arb_logs_tx_hash") }}'
+        description: '{{ doc("blast_logs_tx_hash") }}'
       - name: BOOK_ADDRESS
         description: '{{ doc("blitz_book_address") }}'
       - name: PRODUCT_ID
