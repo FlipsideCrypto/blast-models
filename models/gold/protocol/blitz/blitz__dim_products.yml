@@ -22,8 +22,6 @@ models:
         description: '{{ doc("blitz_symbol") }}'
       - name: NAME
         description: '{{ doc("blitz_name") }}'
-      - name: VERSION
-        description: '{{ doc("blitz_version") }}'
       - name: DIM_PRODUCTS_ID
         description: '{{ doc("pk") }}' 
       - name: INSERTED_TIMESTAMP

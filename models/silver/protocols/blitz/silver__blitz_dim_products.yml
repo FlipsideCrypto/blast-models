@@ -36,10 +36,7 @@ models:
           - not_null
       - name: NAME
         tests:
-          - not_null
-      - name: VERSION
-        tests:
-          - not_null
+          - not_null        
       - name: _LOG_ID
         tests:
           - not_null

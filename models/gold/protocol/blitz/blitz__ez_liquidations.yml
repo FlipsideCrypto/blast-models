@@ -28,10 +28,6 @@ models:
         description: '{{ doc("blitz_trader") }}'
       - name: SUBACCOUNT
         description: '{{ doc("blitz_subaccount") }}'
-      - name: VERSION
-        description: '{{ doc("blitz_version") }}'
-      - name: MODE
-        description: '{{ doc("blitz_mode") }}'
       - name: PRODUCT_ID
         description: '{{ doc("blitz_product_id_liq") }}'
       - name: HEALTH_GROUP  
@@ -46,10 +42,6 @@ models:
         description: '{{ doc("blitz_amount_quote_unadj") }}'
       - name: AMOUNT_QUOTE
         description: '{{ doc("blitz_amount_quote") }}'
-      - name: INSURANCE_COVER_UNADJ
-        description: '{{ doc("blitz_insurance_cover_unadj") }}'
-      - name: INSURANCE_COVER
-        description: '{{ doc("blitz_insurance_cover") }}'
       - name: IS_ENCODE_SPREAD
         description: '{{ doc("blitz_is_encode_spread") }}'
       - name: SPREAD_PRODUCT_IDS

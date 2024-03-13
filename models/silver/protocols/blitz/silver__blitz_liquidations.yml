@@ -60,8 +60,7 @@ models:
               regex: 0[xX][0-9a-fA-F]+
       - name: PRODUCT_ID
         tests:
-          - not_null:
-              where: version = 'v2'
+          - not_null
       - name: HEALTH_GROUP
         tests:
           - not_null

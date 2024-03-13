@@ -30,8 +30,6 @@ models:
         description: '{{ doc("blitz_trader") }}'
       - name: SUBACCOUNT
         description: '{{ doc("blitz_subaccount") }}'
-      - name: VERSION
-        description: '{{ doc("blitz_version") }}'
       - name: TRADE_TYPE
         description: '{{ doc("blitz_trade_type") }}'
       - name: ORDER_TYPE
