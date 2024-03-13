@@ -21,12 +21,7 @@ SELECT
     DATA,
     event_removed,
     tx_status,
-    COALESCE (
-        decoded_logs_id,
-        {{ dbt_utils.generate_surrogate_key(
-            ['tx_hash', 'event_index']
-        ) }}
-    ) AS ez_decoded_event_logs_id,
+    decoded_logs_id AS ez_decoded_event_logs_id,
     GREATEST(COALESCE(l.inserted_timestamp, '2000-01-01'), COALESCE(C.inserted_timestamp, '2000-01-01')) AS inserted_timestamp,
     GREATEST(COALESCE(l.modified_timestamp, '2000-01-01'), COALESCE(C.modified_timestamp, '2000-01-01')) AS modified_timestamp
 FROM
