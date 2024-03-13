@@ -10,8 +10,6 @@ models:
         description: '{{ doc("blast_block_timestamp") }}'
       - name: TX_HASH
         description: '{{ doc("blast_logs_tx_hash") }}'
-      - name: BOOK_ADDRESS
-        description: '{{ doc("blitz_book_address") }}'
       - name: PRODUCT_ID
         description: '{{ doc("blitz_product_id") }}'
       - name: PRODUCT_TYPE
