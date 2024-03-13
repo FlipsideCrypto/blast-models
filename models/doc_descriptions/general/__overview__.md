@@ -25,6 +25,7 @@ There is more information on how to use dbt docs in the last section of this doc
 **Fact Tables:**
 - [fact_blocks](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__fact_blocks)
 - [fact_event_logs](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__fact_event_logs)
+- [fact_decoded_event_logs](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__fact_decoded_event_logs)
 - [fact_traces](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__fact_traces)
 - [fact_transactions](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__fact_transactions)
 - [fact_token_transfers](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__fact_token_transfers)
@@ -32,6 +33,7 @@ There is more information on how to use dbt docs in the last section of this doc
 **Convenience Tables:**
 - [ez_native_transfers](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__ez_native_transfers)
 - [ez_token_transfers](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__ez_token_transfers)
+- [ez_decoded_event_logs](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__ez_decoded_event_logs)
 
 ### Price Tables (blast.price)
 - [fact_hourly_token_prices](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__fact_hourly_token_prices)

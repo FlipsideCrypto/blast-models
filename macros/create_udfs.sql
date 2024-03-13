@@ -8,7 +8,8 @@
         ) }}
         {{ create_udf_rest_api() }}
         {{ create_aws_blast_api() }}
-        
+        {{ create_udf_bulk_decode_logs() }}
+
         {% endset %}
         {% do run_query(sql) %}
         {{- fsc_utils.create_udfs() -}}
