@@ -77,8 +77,8 @@ base_tx AS (
             10
         ) AS origin_function_signature,
         utils.udf_hex_to_int(
-                DATA :mint :: STRING
-            ) AS mint_precise_raw,
+            DATA :mint :: STRING
+        ) AS mint_precise_raw,
         utils.udf_decimal_adjust(
             mint_precise_raw,
             18
@@ -180,6 +180,10 @@ new_records AS (
                 ) :: bigint
             ) + FLOOR(
                 r.l1_gas_price * r.l1_gas_used * r.l1_fee_scalar
+            ) + IFF(
+                r.l1_fee_scalar = 0,
+                r.l1_fee,
+                0
             ),
             18
         ) AS tx_fee_precise,
@@ -263,6 +267,10 @@ missing_data AS (
                 ) :: bigint
             ) + FLOOR(
                 r.l1_gas_price * r.l1_gas_used * r.l1_fee_scalar
+            ) + IFF(
+                r.l1_fee_scalar = 0,
+                r.l1_fee,
+                0
             ),
             18
         ) AS tx_fee_precise_heal,
