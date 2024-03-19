@@ -41,3 +41,25 @@ AND _inserted_timestamp >= (
 qualify(ROW_NUMBER() over(PARTITION BY created_contract_address
 ORDER BY
     _inserted_timestamp DESC)) = 1
+UNION ALL
+SELECT
+    0 AS block_number,
+    '1970-01-01 00:00:00' AS block_timestamp,
+    'GENESIS' AS tx_hash,
+    contract_address AS created_contract_address,
+    'GENESIS' AS creator_address,
+    NULL AS created_contract_input,
+    SYSDATE() AS _inserted_timestamp,
+    {{ dbt_utils.generate_surrogate_key(
+        ['contract_address']
+    ) }} AS created_contracts_id,
+    SYSDATE() AS inserted_timestamp,
+    SYSDATE() AS modified_timestamp,
+    '{{ invocation_id }}' AS _invocation_id
+FROM
+    {{ ref('silver__genesis_contracts_backfill') }}
+
+{% if is_incremental() %}
+WHERE
+    1 = 2
+{% endif %}
