@@ -69,29 +69,27 @@ tbl AS (
         )
 )
 SELECT
-    block_number AS partition_key,
-    OBJECT_CONSTRUCT(
-        'method',
+    ROUND(
+        block_number,
+        -3
+    ) AS partition_key,
+    {{ target.database }}.live.udf_api(
         'POST',
-        'url',
         '{service}/{Authentication}',
-        'headers',
         OBJECT_CONSTRUCT(
             'Content-Type',
             'application/json'
         ),
-        'params',
-        PARSE_JSON('{}'),
-        'data',
         OBJECT_CONSTRUCT(
             'id',
-            block_number :: STRING,
+            block_number,
             'jsonrpc',
             '2.0',
             'method',
             'eth_getBlockByNumber',
             'params',
-            ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), FALSE)) :: STRING
+            ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), FALSE)),
+            'vault/prod/blast/mainnet'
         ) AS request
         FROM
             tbl

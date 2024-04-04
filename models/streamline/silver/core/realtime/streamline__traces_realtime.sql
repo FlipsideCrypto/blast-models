@@ -69,30 +69,28 @@ ready_blocks AS (
         )
 )
 SELECT
-    block_number AS partition_key,
-    OBJECT_CONSTRUCT(
-        'method',
+    ROUND(
+        block_number,
+        -3
+    ) AS partition_key,
+    {{ target.database }}.live.udf_api(
         'POST',
-        'url',
         '{service}/{Authentication}',
-        'headers',
         OBJECT_CONSTRUCT(
             'Content-Type',
             'application/json'
         ),
-        'params',
-        PARSE_JSON('{}'),
-        'data',
         OBJECT_CONSTRUCT(
             'id',
-            block_number :: STRING,
+            block_number,
             'jsonrpc',
             '2.0',
             'method',
             'debug_traceBlockByNumber',
             'params',
             ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), OBJECT_CONSTRUCT('tracer', 'callTracer', 'timeout', '30s'))
-        ) :: STRING
+        ),
+        'vault/prod/blast/mainnet'
     ) AS request
 FROM
     ready_blocks
