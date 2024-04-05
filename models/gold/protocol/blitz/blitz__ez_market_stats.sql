@@ -5,7 +5,7 @@
     meta={
         'database_tags':{
             'table': {
-                'PROTOCOL': 'VERTEX',
+                'PROTOCOL': 'BLITZ',
                 'PURPOSE': 'CLOB, DEX, STATS'
             }
         }
@@ -38,7 +38,7 @@ SELECT
     product_type,
     quote_currency,
     quote_volume,
-    blitz_market_stats_id,
+    blitz_market_stats_id AS ez_market_stats_id,
     inserted_timestamp,
     modified_timestamp
 FROM

@@ -5,7 +5,7 @@
     meta ={ 
         'database_tags':{ 
             'table':{ 
-                'PROTOCOL': 'VERTEX',
+                'PROTOCOL': 'BLITZ',
                 'PURPOSE': 'CLOB, DEX, STATS' 
             }
         }
@@ -49,7 +49,7 @@ SELECT
     total_liquidation_amount,
     total_liquidation_amount_quote,
     total_liquidation_count,
-    blitz_account_id,
+    blitz_account_id as ez_account_stats_id,
     inserted_timestamp,
     modified_timestamp,
 FROM

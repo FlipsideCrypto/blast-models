@@ -31,7 +31,7 @@ models:
       - name: BASE_VOLUME_24H
         description: '{{ doc("blitz_base_volume_24h") }}'
       - name: QUOTE_VOLUME_24H
-        description: '{{ doc("blitz_base_volume_24h") }}'
+        description: '{{ doc("blitz_quote_volume_24h") }}'
       - name: FUNDING_RATE
         description: '{{ doc("blitz_funding_rate") }}'
       - name: INDEX_PRICE
@@ -40,7 +40,7 @@ models:
         description: '{{ doc("blitz_last_price") }}'
       - name: MARK_PRICE
         description: '{{ doc("blitz_mark_price") }}'
-      - name: NEXT_FUNDING_RATE
+      - name: NEXT_FUNDING_RATE_TIMESTAMP
         description: '{{ doc("blitz_next_funding_rate") }}'
       - name: OPEN_INTEREST
         description: '{{ doc("blitz_open_interest") }}'

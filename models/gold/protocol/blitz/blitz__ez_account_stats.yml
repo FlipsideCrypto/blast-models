@@ -6,7 +6,7 @@ models:
     columns:
       - name: SUBACCOUNT
         description: '{{ doc("blitz_subaccount") }}'
-      - name: TRADE
+      - name: TRADER
         description: '{{ doc("blitz_trader") }}'
       - name: FIRST_TRADE_TIMESTAMP
         description: '{{ doc("blitz_first_trade_timestamp") }}'
@@ -48,9 +48,11 @@ models:
         description: '{{ doc("blitz_total_quote_delta_amount") }}'
       - name: TOTAL_LIQUIDATION_AMOUNT
         description: '{{ doc("blitz_total_liquidation_amount") }}'
-      - name: TOTAL_LIQUIDATION_AMOUNT_COUNT
+      - name: TOTAL_LIQUIDATION_AMOUNT_QUOTE
+        description: '{{ doc("blitz_amount_quote_unadj") }}'
+      - name: TOTAL_LIQUIDATION_COUNT
         description: '{{ doc("blitz_total_liquidation_count") }}'
-      - name: VERTEX_ACCOUNT_ID
+      - name: EZ_ACCOUNT_STATS_ID
         description: '{{ doc("pk") }}' 
       - name: INSERTED_TIMESTAMP
         description: '{{ doc("inserted_timestamp") }}'   
