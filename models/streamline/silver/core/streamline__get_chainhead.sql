@@ -4,7 +4,7 @@
 ) }}
 
 SELECT
-    live.udf_api(
+    {{ target.database }}.live.udf_api(
         'POST',
         '{service}/{Authentication}',{},{ 'method' :'eth_blockNumber',
         'params' :[],
