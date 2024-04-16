@@ -51,7 +51,7 @@ SELECT
     total_liquidation_count,
     blitz_account_id as ez_account_stats_id,
     inserted_timestamp,
-    modified_timestamp,
+    modified_timestamp
 FROM
     {{ ref('silver__blitz_account_stats') }}
 ORDER BY total_usd_volume_rank DESC
