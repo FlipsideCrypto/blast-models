@@ -1,0 +1,58 @@
+version: 2
+models:
+  - name: blitz__ez_market_stats
+    description: '{{ doc("blitz_ez_market_stats") }}'
+
+    columns:
+      - name: HOUR
+        description: '{{ doc("blitz_hour") }}'
+      - name: TICKER_ID
+        description: '{{ doc("blitz_ticker_id") }}'
+      - name: PRODUCT_ID
+        description: '{{ doc("blitz_product_id") }}'
+      - name: SYMBOL
+        description: '{{ doc("blitz_symbol") }}'
+      - name: DISTINCT_SEQUENCER_BATCHES
+        description: '{{ doc("blitz_distinct_sequencer_batches") }}'
+      - name: DISTINCT_TRADER_COUNT
+        description: '{{ doc("blitz_trader_count") }}'
+      - name: DISTINCT_SUBACCOUNT_COUNT
+        description: '{{ doc("blitz_subaccount_count") }}'
+      - name: TRADE_COUNT
+        description: '{{ doc("blitz_total_trade_count") }}'
+      - name: AMOUNT_USD
+        description: '{{ doc("blitz_amount_usd") }}'
+      - name: FEE_AMOUNT
+        description: '{{ doc("blitz_fee_amount") }}'
+      - name: BASE_DELTA_AMOUNT
+        description: '{{ doc("blitz_base_delta_amount") }}'
+      - name: QUOTE_DELTA_AMOUNT
+        description: '{{ doc("blitz_quote_delta_amount") }}'
+      - name: BASE_VOLUME_24H
+        description: '{{ doc("blitz_base_volume_24h") }}'
+      - name: QUOTE_VOLUME_24H
+        description: '{{ doc("blitz_quote_volume_24h") }}'
+      - name: FUNDING_RATE
+        description: '{{ doc("blitz_funding_rate") }}'
+      - name: INDEX_PRICE
+        description: '{{ doc("blitz_index_price") }}'
+      - name: LAST_PRICE
+        description: '{{ doc("blitz_last_price") }}'
+      - name: MARK_PRICE
+        description: '{{ doc("blitz_mark_price") }}'
+      - name: NEXT_FUNDING_RATE_TIMESTAMP
+        description: '{{ doc("blitz_next_funding_rate") }}'
+      - name: OPEN_INTEREST
+        description: '{{ doc("blitz_open_interest") }}'
+      - name: OPEN_INTEREST_USD
+        description: '{{ doc("blitz_open_interest_usd") }}'
+      - name: PRODUCT_TYPE
+        description: '{{ doc("blitz_product_type") }}'
+      - name: QUOTE_CURRENCY
+        description: '{{ doc("blitz_quote_currency") }}'
+      - name: EZ_MARKET_STATS_ID
+        description: '{{ doc("pk") }}'
+      - name: INSERTED_TIMESTAMP
+        description: '{{ doc("inserted_timestamp") }}'   
+      - name: MODIFIED_TIMESTAMP
+        description: '{{ doc("modified_timestamp") }}' 

@@ -48,6 +48,11 @@ There is more information on how to use dbt docs in the last section of this doc
 - [ez_clearing_house_events](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_clearing_house_events)
 - [ez_liquidations](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_liquidations)
 - [ez_perp_trades](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_perp_trades)
+- [ez_account_stats](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_account_stats)
+- [ez_edge_trades](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_edge_trades)
+- [ez_market_depth_stats](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_market_depth_stats)
+- [ez_market_stats](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_market_stats)
+- [ez_staking_actions](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_staking_actions)
 
 ## **Helpful User-Defined Functions (UDFs)**
 
