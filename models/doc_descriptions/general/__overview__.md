@@ -40,6 +40,9 @@ There is more information on how to use dbt docs in the last section of this doc
 - [ez_hourly_token_prices](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__ez_hourly_token_prices)
 - [dim_asset_metadata](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__dim_asset_metadata)
 - [ez_asset_metadata](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__ez_asset_metadata)
+
+### Stats Tables (blast.stats)
+- [ez_core_metrics_hourly](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.stats__ez_core_metrics_hourly)
  
 ### Flipside Partner Tables (blast.partner_name)
 
