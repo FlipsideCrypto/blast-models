@@ -98,11 +98,12 @@ SELECT
     '{{ invocation_id }}' AS _invocation_id
 FROM
     eth_base A
-    LEFT JOIN {{ ref('silver__hourly_prices_priority_eth') }}
+    LEFT JOIN {{ ref('silver__complete_token_prices') }} p
     ON DATE_TRUNC(
         'hour',
         A.block_timestamp
     ) = HOUR
+    AND p.token_address = '0x4300000000000000000000000000000000000004'
     JOIN tx_table USING (
         tx_hash,
         block_number
