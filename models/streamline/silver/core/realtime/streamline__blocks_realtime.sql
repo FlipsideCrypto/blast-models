@@ -1,7 +1,7 @@
 {{ config (
     materialized = "view",
     post_hook = if_data_call_function(
-        func = "{{this.schema}}.udf_rest_api(object_construct('sql_source', '{{this.identifier}}', 'external_table', 'blocks', 'sql_limit', {{var('sql_limit','100000')}}, 'producer_batch_size', {{var('producer_batch_size','100000')}}, 'worker_batch_size', {{var('worker_batch_size','50000')}}, 'sm_secret_name','prod/blast/mainnet'))",
+        func = "{{this.schema}}.udf_bulk_rest_api_v2(object_construct('sql_source', '{{this.identifier}}', 'external_table', 'blocks', 'sql_limit', {{var('sql_limit','100000')}}, 'producer_batch_size', {{var('producer_batch_size','100000')}}, 'worker_batch_size', {{var('worker_batch_size','50000')}}, 'sm_secret_name','prod/blast/mainnet'))",
         target = "{{this.schema}}.{{this.identifier}}"
     ),
     tags = ['streamline_core_realtime']
@@ -16,11 +16,6 @@ WITH last_3_days AS (
 ),
 to_do AS (
     SELECT
-        MD5(
-            CAST(
-                COALESCE(CAST(block_number AS text), '' :: STRING) AS text
-            )
-        ) AS id,
         block_number
     FROM
         {{ ref("streamline__blocks") }}
@@ -36,7 +31,6 @@ to_do AS (
         AND block_number IS NOT NULL
     EXCEPT
     SELECT
-        id,
         block_number
     FROM
         {{ ref("streamline__complete_blocks") }}
@@ -54,6 +48,7 @@ to_do AS (
         )
 )
 SELECT
+    block_number,
     ROUND(
         block_number,
         -3
@@ -80,3 +75,4 @@ SELECT
             to_do
         ORDER BY
             partition_key ASC
+LIMIT 10

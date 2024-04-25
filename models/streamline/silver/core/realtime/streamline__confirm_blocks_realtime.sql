@@ -69,6 +69,7 @@ tbl AS (
         )
 )
 SELECT
+    block_number,
     ROUND(
         block_number,
         -3
@@ -95,3 +96,4 @@ SELECT
             tbl
         ORDER BY
             block_number ASC
+LIMIT 10

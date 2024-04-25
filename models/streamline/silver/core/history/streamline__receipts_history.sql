@@ -40,6 +40,7 @@ blocks AS (
         )
 )
 SELECT
+    block_number,
     ROUND(
         block_number,
         -3

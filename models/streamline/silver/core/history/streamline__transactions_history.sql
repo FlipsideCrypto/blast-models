@@ -16,9 +16,6 @@ WITH last_3_days AS (
 ),
 blocks AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(
-            ['block_number']
-        ) }} AS id,
         block_number
     FROM
         {{ ref("streamline__blocks") }}
@@ -31,7 +28,6 @@ blocks AS (
         )
     EXCEPT
     SELECT
-        id,
         block_number
     FROM
         {{ ref("streamline__complete_transactions") }}
@@ -44,6 +40,7 @@ blocks AS (
         )
 )
 SELECT
+    block_number,
     ROUND(
         block_number,
         -3

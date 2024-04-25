@@ -16,11 +16,6 @@ WITH last_3_days AS (
 ),
 to_do AS (
     SELECT
-        MD5(
-            CAST(
-                COALESCE(CAST(block_number AS text), '' :: STRING) AS text
-            )
-        ) AS id,
         block_number
     FROM
         {{ ref("streamline__blocks") }}
@@ -36,7 +31,6 @@ to_do AS (
         AND block_number IS NOT NULL
     EXCEPT
     SELECT
-        id,
         block_number
     FROM
         {{ ref("streamline__complete_transactions") }}
@@ -55,17 +49,11 @@ to_do AS (
 ),
 ready_blocks AS (
     SELECT
-        id,
         block_number
     FROM
         to_do
     UNION
     SELECT
-        MD5(
-            CAST(
-                COALESCE(CAST(block_number AS text), '' :: STRING) AS text
-            )
-        ) AS id,
         block_number
     FROM
         (
@@ -81,6 +69,7 @@ ready_blocks AS (
         )
 )
 SELECT
+    block_number,
     ROUND(
         block_number,
         -3
@@ -107,3 +96,4 @@ SELECT
             ready_blocks
         ORDER BY
             block_number ASC
+LIMIT 10

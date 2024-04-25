@@ -69,6 +69,7 @@ ready_blocks AS (
         )
 )
 SELECT
+    block_number,
     ROUND(
         block_number,
         -3
@@ -96,3 +97,4 @@ FROM
     ready_blocks
 ORDER BY
     block_number ASC
+LIMIT 10
