@@ -12,7 +12,10 @@
 WITH bronze_traces AS (
 
     SELECT
-        block_number,
+        IFNULL(
+            VALUE :BLOCK_NUMBER :: INT,
+            metadata :request :"data" :id :: INT
+        ) AS block_number,
         VALUE :array_index :: INT AS tx_position,
         DATA :result AS full_traces,
         _inserted_timestamp
@@ -32,8 +35,7 @@ WHERE
     {{ ref('bronze__streamline_FR_traces') }}
 WHERE
     _partition_by_block_id <= 2000000
-    AND
-    DATA :result IS NOT NULL
+    AND DATA :result IS NOT NULL
 {% endif %}
 
 qualify(ROW_NUMBER() over (PARTITION BY block_number, tx_position

@@ -8,7 +8,7 @@
 ) }}
 
 SELECT
-    COALESCE(
+    IFNULL(
         VALUE :BLOCK_NUMBER :: INT,
         metadata :request :"data" :id :: INT
     ) AS block_number,

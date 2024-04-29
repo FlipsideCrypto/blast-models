@@ -10,7 +10,10 @@
 WITH base AS (
 
     SELECT
-        block_number,
+        IFNULL(
+            VALUE :BLOCK_NUMBER :: INT,
+            metadata :request :"data" :id :: INT
+        ) AS block_number,
         DATA :result :hash :: STRING AS block_hash,
         DATA :result :transactions txs,
         _inserted_timestamp
