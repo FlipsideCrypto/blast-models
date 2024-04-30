@@ -66,7 +66,7 @@ SELECT
             'method',
             'eth_getBlockReceipts',
             'params',
-            ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), FALSE)),
+            ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number))),
             'vault/prod/blast/mainnet'
         ) AS request
         FROM
