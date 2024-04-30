@@ -40,6 +40,9 @@ There is more information on how to use dbt docs in the last section of this doc
 - [ez_hourly_token_prices](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__ez_hourly_token_prices)
 - [dim_asset_metadata](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__dim_asset_metadata)
 - [ez_asset_metadata](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__ez_asset_metadata)
+
+### Stats Tables (blast.stats)
+- [ez_core_metrics_hourly](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.stats__ez_core_metrics_hourly)
  
 ### Flipside Partner Tables (blast.partner_name)
 
@@ -48,6 +51,10 @@ There is more information on how to use dbt docs in the last section of this doc
 - [ez_clearing_house_events](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_clearing_house_events)
 - [ez_liquidations](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_liquidations)
 - [ez_perp_trades](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_perp_trades)
+- [ez_account_stats](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_account_stats)
+- [ez_edge_trades](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_edge_trades)
+- [ez_market_depth_stats](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_market_depth_stats)
+- [ez_market_stats](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_market_stats)
 
 ## **Helpful User-Defined Functions (UDFs)**
 
