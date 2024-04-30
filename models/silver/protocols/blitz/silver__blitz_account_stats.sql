@@ -27,20 +27,6 @@ new_subaccount_actions AS (
     SELECT
         DISTINCT(subaccount)
     FROM
-        {{ ref('silver__blitz_spot') }}
-    WHERE
-        _inserted_timestamp >= (
-            SELECT
-                MAX(
-                    _inserted_timestamp
-                ) - INTERVAL '12 hours'
-            FROM
-                {{ this }}
-        )
-    UNION
-    SELECT
-        DISTINCT(subaccount)
-    FROM
         {{ ref('silver__blitz_liquidations') }}
     WHERE
         _inserted_timestamp >= (
@@ -77,32 +63,6 @@ trades_union AS (
         _inserted_timestamp
     FROM
         {{ ref('silver__blitz_perps') }}
-
-{% if is_incremental() %}
-WHERE
-    subaccount IN (
-        SELECT
-            subaccount
-        FROM
-            new_subaccount_actions
-    )
-{% endif %}
-UNION ALL
-SELECT
-    subaccount,
-    trader,
-    digest,
-    'spot' AS product_type,
-    trade_type,
-    block_timestamp,
-    amount,
-    amount_usd,
-    fee_amount,
-    base_delta_amount,
-    quote_delta_amount,
-    _inserted_timestamp
-FROM
-    {{ ref('silver__blitz_spot') }}
 
 {% if is_incremental() %}
 WHERE

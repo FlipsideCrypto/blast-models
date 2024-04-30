@@ -4,7 +4,7 @@
     unique_key = '_log_id',
     cluster_by = ['block_timestamp::DATE'],
     tags = ['curated','reorg'],
-    enable = false
+    enabled = false
 ) }}
 
 WITH blitz_products AS (
