@@ -36,10 +36,10 @@ There is more information on how to use dbt docs in the last section of this doc
 - [ez_decoded_event_logs](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.core__ez_decoded_event_logs)
 
 ### Price Tables (blast.price)
-- [fact_hourly_token_prices](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__fact_hourly_token_prices)
-- [ez_hourly_token_prices](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__ez_hourly_token_prices)
 - [dim_asset_metadata](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__dim_asset_metadata)
+- [fact_prices_ohlc_hourly](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__fact_prices_ohlc_hourly)
 - [ez_asset_metadata](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__ez_asset_metadata)
+- [ez_prices_hourly](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.price__ez_prices_hourly)
 
 ### Stats Tables (blast.stats)
 - [ez_core_metrics_hourly](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.stats__ez_core_metrics_hourly)
