@@ -44,10 +44,10 @@ AND _inserted_timestamp >= (
 ),
 order_fill_decode_v2 AS (
     SELECT
-        l.block_number,
-        l.block_timestamp,
-        l.tx_hash,
-        l.contract_address,
+        block_number,
+        block_timestamp,
+        tx_hash,
+        contract_address,
         'FillOrder' AS event_name,
         event_index,
         origin_function_signature,
@@ -57,7 +57,6 @@ order_fill_decode_v2 AS (
         utils.udf_hex_to_int(
             topics [1] :: STRING
         ) :: STRING AS product_id,
-        s.symbol,
         topics [2] :: STRING AS digest,
         --unique hash of the order
         LEFT(
@@ -98,24 +97,20 @@ order_fill_decode_v2 AS (
         l._inserted_timestamp
     FROM
         logs l
-        INNER JOIN blitz_products s
-        ON s.product_id = utils.udf_hex_to_int(
-            topics [1] :: STRING
-        )
 ),
 order_fill_format AS (
     SELECT
-        block_number,
-        block_timestamp,
-        tx_hash,
-        contract_address,
+        l.block_number,
+        l.block_timestamp,
+        l.tx_hash,
+        l.contract_address,
         event_name,
         event_index,
         origin_function_signature,
         origin_from_address,
         origin_to_address,
-        symbol,
-        product_id,
+        s.symbol,
+        l.product_id,
         digest,
         trader,
         subaccount,
@@ -159,7 +154,9 @@ order_fill_format AS (
         _log_id,
         _inserted_timestamp
     FROM
-        order_fill_decode_v2
+        order_fill_decode_v2 l
+    INNER JOIN blitz_products s
+    ON s.product_id = l.product_id
 ),
 FINAL AS (
     SELECT
