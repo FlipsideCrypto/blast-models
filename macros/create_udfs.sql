@@ -6,7 +6,7 @@
         {{ create_udtf_get_base_table(
             schema = "streamline"
         ) }}
-        {{ create_udf_rest_api() }}
+        {{ create_udf_bulk_rest_api_v2() }}
         {{ create_aws_blast_api() }}
         {{ create_udf_bulk_decode_logs() }}
 

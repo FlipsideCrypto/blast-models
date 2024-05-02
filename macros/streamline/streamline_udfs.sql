@@ -1,6 +1,6 @@
-{% macro create_udf_rest_api() %}
+{% macro create_udf_bulk_rest_api_v2() %}
     CREATE
-    OR REPLACE EXTERNAL FUNCTION streamline.udf_rest_api(
+    OR REPLACE EXTERNAL FUNCTION streamline.udf_bulk_rest_api_v2(
         json OBJECT
     ) returns ARRAY api_integration = 
     {% if target.name == "prod" %}

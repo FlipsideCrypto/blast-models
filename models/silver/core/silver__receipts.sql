@@ -12,7 +12,10 @@
 WITH base AS (
 
     SELECT
-        block_number,
+        IFNULL(
+            VALUE :BLOCK_NUMBER :: INT,
+            metadata :request :"data" :id :: INT
+        ) AS block_number,
         DATA,
         _inserted_timestamp
     FROM

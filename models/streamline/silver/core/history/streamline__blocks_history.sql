@@ -1,8 +1,13 @@
 {{ config (
     materialized = "view",
-    post_hook = if_data_call_function(
-        func = "{{this.schema}}.udf_rest_api(object_construct('sql_source', '{{this.identifier}}', 'external_table', 'blocks', 'sql_limit', {{var('sql_limit','100000')}}, 'producer_batch_size', {{var('producer_batch_size','100000')}}, 'worker_batch_size', {{var('worker_batch_size','50000')}}, 'sm_secret_name','prod/blast/mainnet'))",
-        target = "{{this.schema}}.{{this.identifier}}"
+    post_hook = fsc_utils.if_data_call_function_v2(
+        func = 'streamline.udf_bulk_rest_api_v2',
+        target = "{{this.schema}}.{{this.identifier}}",
+        params ={ "external_table" :"blocks",
+        "sql_limit" :"100000",
+        "producer_batch_size" :"100000",
+        "worker_batch_size" :"50000",
+        "sql_source" :"{{this.identifier}}" }
     ),
     tags = ['streamline_core_history']
 ) }}
@@ -16,9 +21,6 @@ WITH last_3_days AS (
 ),
 blocks AS (
     SELECT
-        {{ dbt_utils.generate_surrogate_key(
-            ['block_number']
-        ) }} AS id,
         block_number
     FROM
         {{ ref("streamline__blocks") }}
@@ -31,7 +33,6 @@ blocks AS (
         )
     EXCEPT
     SELECT
-        id,
         block_number
     FROM
         {{ ref("streamline__complete_blocks") }}
@@ -44,29 +45,28 @@ blocks AS (
         )
 )
 SELECT
-    block_number AS partition_key,
-    OBJECT_CONSTRUCT(
-        'method',
+    block_number,
+    ROUND(
+        block_number,
+        -3
+    ) AS partition_key,
+    {{ target.database }}.live.udf_api(
         'POST',
-        'url',
         '{service}/{Authentication}',
-        'headers',
         OBJECT_CONSTRUCT(
             'Content-Type',
             'application/json'
         ),
-        'params',
-        PARSE_JSON('{}'),
-        'data',
         OBJECT_CONSTRUCT(
             'id',
-            block_number :: STRING,
+            block_number,
             'jsonrpc',
             '2.0',
             'method',
             'eth_getBlockByNumber',
             'params',
-            ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), FALSE)) :: STRING
+            ARRAY_CONSTRUCT(utils.udf_int_to_hex(block_number), FALSE)),
+            'vault/prod/blast/mainnet'
         ) AS request
         FROM
             blocks
