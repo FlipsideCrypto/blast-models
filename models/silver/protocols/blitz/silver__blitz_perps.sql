@@ -104,7 +104,6 @@ order_fill_decode_v2 AS (
         )
 ),
 order_fill_format AS (
-
     SELECT
         block_number,
         block_timestamp,
@@ -121,13 +120,13 @@ order_fill_format AS (
         trader,
         subaccount,
         expiration AS expiration_raw,
-        arbitrum.UTILS.UDF_INT_TO_BINARY(TRY_TO_NUMBER(expiration)) AS exp_binary,
-        arbitrum.utils.udf_binary_to_int(SUBSTR(exp_binary, -2)) AS order_type,
-        arbitrum.utils.udf_binary_to_int(SUBSTR(exp_binary, -3, 1)) AS market_reduce_flag,
+        utils.udf_int_to_binary(TRY_TO_NUMBER(expiration)) AS exp_binary,
+        utils.udf_binary_to_int(SUBSTR(exp_binary, -2)) AS order_type,
+        utils.udf_binary_to_int(SUBSTR(exp_binary, -3, 1)) AS market_reduce_flag,
         CASE
-            WHEN len(expiration) < 11 THEN TRY_TO_TIMESTAMP(arbitrum.utils.udf_binary_to_int(exp_binary) :: STRING)
+            WHEN len(expiration) < 11 THEN TRY_TO_TIMESTAMP(utils.udf_binary_to_int(exp_binary) :: STRING)
             ELSE TRY_TO_TIMESTAMP(
-                arbitrum.utils.udf_binary_to_int(SUBSTR(exp_binary, 24)) :: STRING
+                utils.udf_binary_to_int(SUBSTR(exp_binary, 24)) :: STRING
             )
         END AS expiration,
         nonce,
