@@ -12,10 +12,13 @@
 WITH base AS (
 
     SELECT
-        IFNULL(
-            VALUE :BLOCK_NUMBER :: INT,
-            metadata :request :"data" :id :: INT
-        ) AS block_number,
+        COALESCE(
+        VALUE :BLOCK_NUMBER :: INT,
+        metadata :request :"data" :id :: INT,
+        PARSE_JSON(
+            metadata :request :"data"
+        ) :id :: INT
+    ) AS block_number,
         DATA,
         _inserted_timestamp
     FROM

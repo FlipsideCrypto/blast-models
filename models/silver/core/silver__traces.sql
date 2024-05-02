@@ -12,10 +12,13 @@
 WITH bronze_traces AS (
 
     SELECT
-        IFNULL(
-            VALUE :BLOCK_NUMBER :: INT,
-            metadata :request :"data" :id :: INT
-        ) AS block_number,
+        COALESCE(
+        VALUE :BLOCK_NUMBER :: INT,
+        metadata :request :"data" :id :: INT,
+        PARSE_JSON(
+            metadata :request :"data"
+        ) :id :: INT
+    ) AS block_number,
         VALUE :array_index :: INT AS tx_position,
         DATA :result AS full_traces,
         _inserted_timestamp

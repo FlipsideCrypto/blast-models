@@ -10,9 +10,12 @@
 
 SELECT
     DATA,
-    IFNULL(
+    COALESCE(
         VALUE :BLOCK_NUMBER :: INT,
-        metadata :request :"data" :id :: INT
+        metadata :request :"data" :id :: INT,
+        PARSE_JSON(
+            metadata :request :"data"
+        ) :id :: INT
     ) AS block_number,
     utils.udf_hex_to_int(
         DATA :result :baseFeePerGas :: STRING
