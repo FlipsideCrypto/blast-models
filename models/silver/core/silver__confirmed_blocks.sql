@@ -11,12 +11,12 @@ WITH base AS (
 
     SELECT
         COALESCE(
-        VALUE :BLOCK_NUMBER :: INT,
-        metadata :request :"data" :id :: INT,
-        PARSE_JSON(
-            metadata :request :"data"
-        ) :id :: INT
-    ) AS block_number,
+            VALUE :BLOCK_NUMBER :: INT,
+            metadata :request :"data" :id :: INT,
+            PARSE_JSON(
+                metadata :request :"data"
+            ) :id :: INT
+        ) AS block_number,
         DATA :result :hash :: STRING AS block_hash,
         DATA :result :transactions txs,
         _inserted_timestamp
