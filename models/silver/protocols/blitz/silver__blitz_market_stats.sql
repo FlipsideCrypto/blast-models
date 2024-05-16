@@ -36,7 +36,7 @@ market_stats AS (
         f.value :quote_currency :: STRING AS quote_currency,
         f.value :quote_volume :: FLOAT AS quote_volume,
         f.key AS ticker_id,
-        SYSDATE() AS _inserted_timestamp
+        SYSDATE() AS inserted_timestamp
     FROM
         api_pull A,
         LATERAL FLATTEN(
@@ -51,7 +51,7 @@ trade_snapshot AS (
         ) AS HOUR,
         CONCAT(
             symbol,
-            '_USDC'
+            '_USDB'
         ) AS ticker_id,
         symbol,
         product_id,
@@ -68,7 +68,7 @@ trade_snapshot AS (
         {{ ref('silver__blitz_perps') }}
         p
     WHERE
-        block_timestamp > '2024-04-16 20:00:00.000'
+        block_timestamp > '2024-04-16 00:00:00.000' --start of model pull
     GROUP BY
         1,
         2,
@@ -162,7 +162,6 @@ FROM
 )
 SELECT
     *,
-    SYSDATE() AS inserted_timestamp,
     SYSDATE() AS modified_timestamp,
     {{ dbt_utils.generate_surrogate_key(
         ['ticker_id','hour']
