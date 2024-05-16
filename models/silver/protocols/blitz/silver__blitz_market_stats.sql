@@ -68,7 +68,7 @@ trade_snapshot AS (
         {{ ref('silver__blitz_perps') }}
         p
     WHERE
-        block_timestamp > SYSDATE() - INTERVAL '12 hour'
+        block_timestamp > '2024-04-16 20:00:00.000'
     GROUP BY
         1,
         2,
@@ -169,6 +169,7 @@ SELECT
     ) }} AS blitz_market_stats_id,
     '{{ invocation_id }}' AS _invocation_id
 FROM
-    FINAL qualify(ROW_NUMBER() over(PARTITION BY ticker_id, HOUR
+    FINAL 
+WHERE FUNDING_RATE <> 0  qualify(ROW_NUMBER() over(PARTITION BY ticker_id, HOUR
 ORDER BY
-    _inserted_timestamp DESC)) = 1
+    _inserted_timestamp DESC NULLS LAST)) = 1
