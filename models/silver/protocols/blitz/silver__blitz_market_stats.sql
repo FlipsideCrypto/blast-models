@@ -68,7 +68,7 @@ trade_snapshot AS (
         {{ ref('silver__blitz_perps') }}
         p
     WHERE
-        block_timestamp > '2024-04-16 00:00:00.000' --start of model pull
+        block_timestamp > '2024-04-16 00:00:00.000' --start of api pulls
     GROUP BY
         1,
         2,
