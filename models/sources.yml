@@ -1,12 +1,6 @@
 version: 2
 
 sources:
-  - name: ethereum
-    database: ethereum
-    schema: core
-    tables:
-      - name: fact_hourly_token_prices
-      - name: ez_hourly_token_prices
   - name: bronze_streamline
     database: streamline
     schema: |
@@ -28,9 +22,8 @@ sources:
     schema: core
     tables:
       - name: dim_labels
-      - name: ez_hourly_token_prices
   - name: silver_crosschain
-    database: "{{ 'crosschain' if target.database == 'BLAST' else 'crosschain_dev' }}"
+    database: crosschain_dev
     schema: silver
     tables:
       - name: apis_keys
