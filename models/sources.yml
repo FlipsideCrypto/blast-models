@@ -23,7 +23,7 @@ sources:
     tables:
       - name: dim_labels
   - name: silver_crosschain
-    database: crosschain_dev
+    database: "{{ 'crosschain' if target.database == 'BLAST' else 'crosschain_dev' }}"
     schema: silver
     tables:
       - name: apis_keys
