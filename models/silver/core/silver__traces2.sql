@@ -38,7 +38,7 @@ WHERE
 {% else %}
     {{ ref('bronze__streamline_FR_traces') }}
 WHERE
-    _partition_by_block_id <= 2300000
+    partition_key <= 2300000
     AND DATA :result IS NOT NULL
 {% endif %}
 
