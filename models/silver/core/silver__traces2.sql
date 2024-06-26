@@ -19,7 +19,7 @@ WITH bronze_traces AS (
                 metadata :request :"data"
             ) :id :: INT
         ) AS block_number,
-        _partition_by_block_id AS partition_key,
+        partition_key,
         VALUE :array_index :: INT AS tx_position,
         DATA :result AS full_traces,
         _inserted_timestamp
