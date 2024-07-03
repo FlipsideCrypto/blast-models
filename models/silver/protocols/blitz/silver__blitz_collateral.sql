@@ -72,6 +72,7 @@ product_id_join AS (
             WHEN p.symbol = 'USDB' THEN '0x4300000000000000000000000000000000000003'
             WHEN p.symbol = 'WETH' THEN '0x4300000000000000000000000000000000000004'
             WHEN p.symbol = 'ETH' THEN '0x4300000000000000000000000000000000000004'
+            WHEN p.symbol = 'BLAST' THEN '0xb1a5700fa2358173fe465e6ea4ff52e36e88e2ad'
         END AS token_address,
         amount,
         l._log_id,
