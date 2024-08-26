@@ -35,7 +35,7 @@ invalid_product_ids as (
     select *
     from {{ ref('silver__blitz_dim_products') }}
     where product_id not in (select product_id from recent_records)
-    AND block_timestamp < sysdate() - INTERVAL '2 days'
+    AND block_timestamp < sysdate() - INTERVAL '7 days'
     {% if filter %}
         AND {{ filter }}
     {% endif %}
