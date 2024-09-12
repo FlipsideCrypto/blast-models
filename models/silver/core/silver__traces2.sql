@@ -7,8 +7,9 @@
     post_hook = "ALTER TABLE {{ this }} ADD SEARCH OPTIMIZATION",
     tags = ['non_realtime'],
     full_refresh = false
-) }} 
+) }}
 {{ fsc_evm.silver_traces_v1(
     full_reload_start_block = 3000000,
-    full_reload_blocks = 1000000
+    full_reload_blocks = 1000000,
+    use_partition_key = true
 ) }}
