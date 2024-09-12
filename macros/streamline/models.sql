@@ -57,7 +57,7 @@
             )
 {% endmacro %}
 
-{% macro streamline_external_table_FR_query(
+{% macro streamline_external_table_fr_query(
         model,
         partition_function,
         partition_name,
@@ -151,7 +151,7 @@ WHERE
 
 {% endmacro %}
 
-{% macro streamline_external_table_FR_query_v2(
+{% macro streamline_external_table_fr_query_v2(
         model,
         partition_function
     ) %}
