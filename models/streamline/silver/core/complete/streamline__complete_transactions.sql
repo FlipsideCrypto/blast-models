@@ -34,7 +34,7 @@ WHERE
             {{ this }}
     )
 {% else %}
-    {{ ref('bronze__streamline_FR_transactions') }}
+    {{ ref('bronze__streamline_fr_transactions') }}
 {% endif %}
 
 qualify(ROW_NUMBER() over (PARTITION BY block_number
