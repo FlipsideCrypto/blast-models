@@ -440,7 +440,7 @@ complete_dex_swaps AS (
   FROM
     all_dex s
     LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
-    rp1
+    rp1 -- join ring_pools_reads to get prices for underlying token addresses
     ON s.token_in = rp1.contract_address
     LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
     rp2
@@ -691,6 +691,9 @@ heal_model AS (
               FROM
                 {{ this }}
                 t3
+                LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
+                rp1
+                ON t3.token_in = rp1.contract_address
               WHERE
                 t3.amount_in_usd IS NULL
                 AND t3._inserted_timestamp < (
@@ -707,15 +710,14 @@ heal_model AS (
                   FROM
                     {{ ref('silver__complete_token_prices') }}
                     p
-                    LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
-                    rp
-                    ON p.token_address = rp.token_address
                   WHERE
                     p._inserted_timestamp > DATEADD('DAY', -14, SYSDATE())
                     AND p.price IS NOT NULL
-                    AND (
-                      p.token_address = t3.token_in
-                      OR p.token_address = rp.token_address
+                    AND p.token_address = (
+                      CASE
+                        WHEN rp1.token_address IS NOT NULL THEN rp1.token_address
+                        ELSE t3.token_in
+                      END
                     )
                     AND p.hour = DATE_TRUNC(
                       'hour',
@@ -743,6 +745,9 @@ heal_model AS (
               FROM
                 {{ this }}
                 t4
+                LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
+                rp2
+                ON t4.token_out = rp2.contract_address
               WHERE
                 t4.amount_out_usd IS NULL
                 AND t4._inserted_timestamp < (
@@ -759,15 +764,14 @@ heal_model AS (
                   FROM
                     {{ ref('silver__complete_token_prices') }}
                     p
-                    LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
-                    rp
-                    ON p.token_address = rp.token_address
                   WHERE
                     p._inserted_timestamp > DATEADD('DAY', -14, SYSDATE())
                     AND p.price IS NOT NULL
-                    AND (
-                      p.token_address = t4.token_out
-                      OR p.token_address = rp.token_address
+                    AND p.token_address = (
+                      CASE
+                        WHEN rp2.token_address IS NOT NULL THEN rp2.token_address
+                        ELSE t4.token_out
+                      END
                     )
                     AND p.hour = DATE_TRUNC(
                       'hour',
