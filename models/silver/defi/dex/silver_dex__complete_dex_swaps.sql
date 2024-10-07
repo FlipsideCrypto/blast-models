@@ -439,6 +439,12 @@ complete_dex_swaps AS (
     s._inserted_timestamp
   FROM
     all_dex s
+    LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
+    rp1
+    ON s.token_in = rp1.contract_address
+    LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
+    rp2
+    ON s.token_out = rp2.contract_address
     LEFT JOIN {{ ref('silver__contracts') }}
     c1
     ON s.token_in = c1.contract_address
@@ -447,14 +453,24 @@ complete_dex_swaps AS (
     ON s.token_out = c2.contract_address
     LEFT JOIN {{ ref('price__ez_prices_hourly') }}
     p1
-    ON s.token_in = p1.token_address
+    ON (
+      CASE
+        WHEN rp1.token_address IS NOT NULL THEN rp1.token_address
+        ELSE s.token_in
+      END
+    ) = p1.token_address
     AND DATE_TRUNC(
       'hour',
       block_timestamp
     ) = p1.hour
     LEFT JOIN {{ ref('price__ez_prices_hourly') }}
     p2
-    ON s.token_out = p2.token_address
+    ON (
+      CASE
+        WHEN rp2.token_address IS NOT NULL THEN rp2.token_address
+        ELSE s.token_out
+      END
+    ) = p2.token_address
     AND DATE_TRUNC(
       'hour',
       block_timestamp
@@ -537,6 +553,12 @@ heal_model AS (
   FROM
     {{ this }}
     t0
+    LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
+    rp1
+    ON t0.token_in = rp1.contract_address
+    LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
+    rp2
+    ON t0.token_out = rp2.contract_address
     LEFT JOIN {{ ref('silver__contracts') }}
     c1
     ON t0.token_in = c1.contract_address
@@ -545,14 +567,24 @@ heal_model AS (
     ON t0.token_out = c2.contract_address
     LEFT JOIN {{ ref('price__ez_prices_hourly') }}
     p1
-    ON t0.token_in = p1.token_address
+    ON (
+      CASE
+        WHEN rp1.token_address IS NOT NULL THEN rp1.token_address
+        ELSE t0.token_in
+      END
+    ) = p1.token_address
     AND DATE_TRUNC(
       'hour',
       block_timestamp
     ) = p1.hour
     LEFT JOIN {{ ref('price__ez_prices_hourly') }}
     p2
-    ON t0.token_out = p2.token_address
+    ON (
+      CASE
+        WHEN rp2.token_address IS NOT NULL THEN rp2.token_address
+        ELSE t0.token_out
+      END
+    ) = p2.token_address
     AND DATE_TRUNC(
       'hour',
       block_timestamp
@@ -675,10 +707,16 @@ heal_model AS (
                   FROM
                     {{ ref('silver__complete_token_prices') }}
                     p
+                    LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
+                    rp
+                    ON p.token_address = rp.token_address
                   WHERE
                     p._inserted_timestamp > DATEADD('DAY', -14, SYSDATE())
                     AND p.price IS NOT NULL
-                    AND p.token_address = t3.token_in
+                    AND (
+                      p.token_address = t3.token_in
+                      OR p.token_address = rp.token_address
+                    )
                     AND p.hour = DATE_TRUNC(
                       'hour',
                       t3.block_timestamp
@@ -721,10 +759,16 @@ heal_model AS (
                   FROM
                     {{ ref('silver__complete_token_prices') }}
                     p
+                    LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
+                    rp
+                    ON p.token_address = rp.token_address
                   WHERE
                     p._inserted_timestamp > DATEADD('DAY', -14, SYSDATE())
                     AND p.price IS NOT NULL
-                    AND p.token_address = t4.token_out
+                    AND (
+                      p.token_address = t4.token_out
+                      OR p.token_address = rp.token_address
+                    )
                     AND p.hour = DATE_TRUNC(
                       'hour',
                       t4.block_timestamp
