@@ -432,19 +432,19 @@ complete_dex_swaps AS (
     END AS pool_name,
     sender,
     tx_to,
-    event_index,
+    s.event_index,
     s.platform,
     s.version,
     s._log_id,
     s._inserted_timestamp
   FROM
     all_dex s
-    LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
-    rp1 -- join ring_pools_reads to get prices for underlying token addresses
-    ON s.token_in = rp1.contract_address
-    LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
+    LEFT JOIN {{ ref('silver_dex__ring_pools_tokens_wrapped') }}
+    rp1 -- join ring_pools_tokens to get prices for underlying, wrapped token addresses
+    ON s.token_in = rp1.wrapped_token
+    LEFT JOIN {{ ref('silver_dex__ring_pools_tokens_wrapped') }}
     rp2
-    ON s.token_out = rp2.contract_address
+    ON s.token_out = rp2.wrapped_token
     LEFT JOIN {{ ref('silver__contracts') }}
     c1
     ON s.token_in = c1.contract_address
@@ -455,7 +455,7 @@ complete_dex_swaps AS (
     p1
     ON (
       CASE
-        WHEN rp1.token_address IS NOT NULL THEN rp1.token_address
+        WHEN rp1.original_token IS NOT NULL THEN rp1.original_token
         ELSE s.token_in
       END
     ) = p1.token_address
@@ -467,7 +467,7 @@ complete_dex_swaps AS (
     p2
     ON (
       CASE
-        WHEN rp2.token_address IS NOT NULL THEN rp2.token_address
+        WHEN rp2.original_token IS NOT NULL THEN rp2.original_token
         ELSE s.token_out
       END
     ) = p2.token_address
@@ -545,7 +545,7 @@ heal_model AS (
     END AS pool_name_heal,
     sender,
     tx_to,
-    event_index,
+    t0.event_index,
     t0.platform,
     t0.version,
     t0._log_id,
@@ -553,12 +553,12 @@ heal_model AS (
   FROM
     {{ this }}
     t0
-    LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
+    LEFT JOIN {{ ref('silver_dex__ring_pools_tokens_wrapped') }}
     rp1
-    ON t0.token_in = rp1.contract_address
-    LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
+    ON t0.token_in = rp1.wrapped_token
+    LEFT JOIN {{ ref('silver_dex__ring_pools_tokens_wrapped') }}
     rp2
-    ON t0.token_out = rp2.contract_address
+    ON t0.token_out = rp2.wrapped_token
     LEFT JOIN {{ ref('silver__contracts') }}
     c1
     ON t0.token_in = c1.contract_address
@@ -569,7 +569,7 @@ heal_model AS (
     p1
     ON (
       CASE
-        WHEN rp1.token_address IS NOT NULL THEN rp1.token_address
+        WHEN rp1.original_token IS NOT NULL THEN rp1.original_token
         ELSE t0.token_in
       END
     ) = p1.token_address
@@ -581,7 +581,7 @@ heal_model AS (
     p2
     ON (
       CASE
-        WHEN rp2.token_address IS NOT NULL THEN rp2.token_address
+        WHEN rp2.original_token IS NOT NULL THEN rp2.original_token
         ELSE t0.token_out
       END
     ) = p2.token_address
@@ -691,9 +691,9 @@ heal_model AS (
               FROM
                 {{ this }}
                 t3
-                LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
+                LEFT JOIN {{ ref('silver_dex__ring_pools_tokens_wrapped') }}
                 rp1
-                ON t3.token_in = rp1.contract_address
+                ON t3.token_in = rp1.wrapped_token
               WHERE
                 t3.amount_in_usd IS NULL
                 AND t3._inserted_timestamp < (
@@ -715,7 +715,7 @@ heal_model AS (
                     AND p.price IS NOT NULL
                     AND p.token_address = (
                       CASE
-                        WHEN rp1.token_address IS NOT NULL THEN rp1.token_address
+                        WHEN rp1.original_token IS NOT NULL THEN rp1.original_token
                         ELSE t3.token_in
                       END
                     )
@@ -745,9 +745,9 @@ heal_model AS (
               FROM
                 {{ this }}
                 t4
-                LEFT JOIN {{ ref('silver_dex__ring_pools_reads') }}
+                LEFT JOIN {{ ref('silver_dex__ring_pools_tokens_wrapped') }}
                 rp2
-                ON t4.token_out = rp2.contract_address
+                ON t4.token_out = rp2.wrapped_token
               WHERE
                 t4.amount_out_usd IS NULL
                 AND t4._inserted_timestamp < (
@@ -769,7 +769,7 @@ heal_model AS (
                     AND p.price IS NOT NULL
                     AND p.token_address = (
                       CASE
-                        WHEN rp2.token_address IS NOT NULL THEN rp2.token_address
+                        WHEN rp2.original_token IS NOT NULL THEN rp2.original_token
                         ELSE t4.token_out
                       END
                     )
