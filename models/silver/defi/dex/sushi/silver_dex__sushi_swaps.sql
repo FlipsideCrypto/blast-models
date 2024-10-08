@@ -6,62 +6,56 @@
     tags = ['curated','reorg']
 ) }}
 
-WITH pools AS (
+WITH swaps_base AS (
 
     SELECT
-        pool_address,
-        token0,
-        token1
-    FROM
-        {{ ref('silver_dex__sushi_pools') }}
-),
-swaps_base AS (
-    SELECT
-        block_number,
+        l.block_number,
+        l.block_timestamp,
+        l.tx_hash,
+        l.event_index,
         origin_function_signature,
         origin_from_address,
         origin_to_address,
-        block_timestamp,
-        tx_hash,
-        event_index,
-        contract_address,
+        l.contract_address,
         regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
                 segmented_data [0] :: STRING
-            ) :: INTEGER
+            )
         ) AS amount0In,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
                 segmented_data [1] :: STRING
-            ) :: INTEGER
+            )
         ) AS amount1In,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
                 segmented_data [2] :: STRING
-            ) :: INTEGER
+            )
         ) AS amount0Out,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
                 segmented_data [3] :: STRING
-            ) :: INTEGER
+            )
         ) AS amount1Out,
         CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS sender,
         CONCAT('0x', SUBSTR(topics [2] :: STRING, 27, 40)) AS tx_to,
         token0,
         token1,
-        _log_id,
-        _inserted_timestamp
+        l._log_id,
+        l._inserted_timestamp
     FROM
         {{ ref('silver__logs') }}
-        INNER JOIN pools p
-        ON p.pool_address = contract_address
+        l
+        INNER JOIN {{ ref('silver_dex__sushi_pools') }}
+        p
+        ON p.pool_address = l.contract_address
     WHERE
         topics [0] :: STRING = '0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822'
         AND tx_status = 'SUCCESS'
 
 {% if is_incremental() %}
-AND _inserted_timestamp >= (
+AND l._inserted_timestamp >= (
     SELECT
         MAX(_inserted_timestamp) - INTERVAL '12 hours'
     FROM
@@ -72,11 +66,11 @@ AND _inserted_timestamp >= (
 SELECT
     block_number,
     block_timestamp,
+    tx_hash,
+    event_index,
     origin_function_signature,
     origin_from_address,
     origin_to_address,
-    tx_hash,
-    event_index,
     contract_address,
     sender,
     tx_to,

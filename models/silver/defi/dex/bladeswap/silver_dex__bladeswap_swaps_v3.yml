@@ -1,6 +1,6 @@
 version: 2
 models:
-  - name: silver_dex__ring_swaps_v3
+  - name: silver_dex__bladeswap_swaps_v3
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:

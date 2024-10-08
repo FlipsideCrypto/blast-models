@@ -5,7 +5,7 @@
     tags = ['curated']
 ) }}
 
-WITH pool_creation AS (
+WITH created_pools AS (
 
     SELECT
         block_number,
@@ -17,9 +17,11 @@ WITH pool_creation AS (
         CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS token0,
         CONCAT('0x', SUBSTR(topics [2] :: STRING, 27, 40)) AS token1,
         CONCAT('0x', SUBSTR(segmented_data [0] :: STRING, 25, 40)) AS pool_address,
-        utils.udf_hex_to_int(
-            segmented_data [1] :: STRING
-        ) :: INT AS pool_id,
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                segmented_data [1] :: STRING
+            )
+        ) AS pool_id,
         _log_id,
         _inserted_timestamp
     FROM
@@ -42,8 +44,8 @@ SELECT
     block_number,
     block_timestamp,
     tx_hash,
-    contract_address,
     event_index,
+    contract_address,
     token0,
     token1,
     pool_address,
@@ -51,6 +53,6 @@ SELECT
     _log_id,
     _inserted_timestamp
 FROM
-    pool_creation qualify(ROW_NUMBER() over (PARTITION BY pool_address
+    created_pools qualify(ROW_NUMBER() over (PARTITION BY pool_address
 ORDER BY
     _inserted_timestamp DESC)) = 1

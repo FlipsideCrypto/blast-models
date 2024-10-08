@@ -1,6 +1,6 @@
 version: 2
 models:
-  - name: silver_dex__sushi_pools
+  - name: silver_dex__bladeswap_pools_v3
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
@@ -12,9 +12,12 @@ models:
       - name: POOL_ADDRESS
         tests:
           - not_null
-      - name: TOKEN0
+      - name: TOKEN0_ADDRESS
         tests:
           - not_null
-      - name: TOKEN1
+      - name: TOKEN1_ADDRESS
         tests:
           - not_null
+
+
+

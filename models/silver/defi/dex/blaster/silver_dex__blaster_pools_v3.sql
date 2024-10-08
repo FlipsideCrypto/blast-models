@@ -1,7 +1,7 @@
 {{ config(
     materialized = 'incremental',
     incremental_strategy = 'delete+insert',
-    unique_key = "pool_address",
+    unique_key = 'pool_address',
     cluster_by = ['block_timestamp::DATE'],
     tags = ['curated']
 ) }}
@@ -12,25 +12,30 @@ WITH created_pools AS (
         block_number,
         block_timestamp,
         tx_hash,
+        event_index,
         contract_address,
         regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
         LOWER(CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40))) AS token0_address,
         LOWER(CONCAT('0x', SUBSTR(topics [2] :: STRING, 27, 40))) AS token1_address,
-        utils.udf_hex_to_int(
-            's2c',
-            topics [3] :: STRING
-        ) :: INTEGER AS fee,
-        utils.udf_hex_to_int(
-            's2c',
-            segmented_data [0] :: STRING
-        ) :: INTEGER AS tick_spacing,
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                's2c',
+                topics [3] :: STRING
+            )
+        ) AS fee,
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                's2c',
+                segmented_data [0] :: STRING
+            )
+        ) AS tick_spacing,
         CONCAT('0x', SUBSTR(segmented_data [1] :: STRING, 25, 40)) AS pool_address,
         _log_id,
         _inserted_timestamp
     FROM
         {{ ref('silver__logs') }}
     WHERE
-        topics [0] = '0x783cca1c0412dd0d695e784568c96da2e9c22ff989357a2e8b1d9b2b4e6b7118'
+        topics [0] :: STRING = '0x783cca1c0412dd0d695e784568c96da2e9c22ff989357a2e8b1d9b2b4e6b7118'
         AND contract_address = '0x1a8027625c830aac43ad82a3f7cd6d5fdce89d78' --BlasterSwapV3Factory
         AND tx_status = 'SUCCESS'
 
@@ -79,6 +84,7 @@ FINAL AS (
         block_number,
         block_timestamp,
         tx_hash,
+        event_index,
         p.contract_address,
         token0_address,
         token1_address,
@@ -92,7 +98,7 @@ FINAL AS (
             init_tick,
             0
         ) AS init_tick,
-        p._log_id AS _id,
+        p._log_id,
         p._inserted_timestamp
     FROM
         created_pools p
@@ -100,7 +106,20 @@ FINAL AS (
         ON p.pool_address = i.contract_address
 )
 SELECT
-    *
+    block_number,
+    block_timestamp,
+    tx_hash,
+    event_index,
+    contract_address,
+    token0_address,
+    token1_address,
+    fee,
+    fee_percent,
+    tick_spacing,
+    pool_address,
+    init_tick,
+    _log_id,
+    _inserted_timestamp
 FROM
     FINAL qualify(ROW_NUMBER() over(PARTITION BY pool_address
 ORDER BY

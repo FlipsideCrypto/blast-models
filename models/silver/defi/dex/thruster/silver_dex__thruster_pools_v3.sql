@@ -1,7 +1,7 @@
 {{ config(
     materialized = 'incremental',
     incremental_strategy = 'delete+insert',
-    unique_key = "pool_address",
+    unique_key = 'pool_address',
     cluster_by = ['block_timestamp::DATE'],
     tags = ['curated']
 ) }}
@@ -12,6 +12,7 @@ WITH created_pools AS (
         block_number,
         block_timestamp,
         tx_hash,
+        event_index,
         contract_address,
         regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
         LOWER(CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40))) AS token0_address,
@@ -30,7 +31,7 @@ WITH created_pools AS (
     FROM
         {{ ref('silver__logs') }}
     WHERE
-        topics [0] = '0x783cca1c0412dd0d695e784568c96da2e9c22ff989357a2e8b1d9b2b4e6b7118'
+        topics [0] :: STRING = '0x783cca1c0412dd0d695e784568c96da2e9c22ff989357a2e8b1d9b2b4e6b7118'
         AND contract_address = '0x71b08f13b3c3af35aadeb3949afeb1ded1016127' --ThrusterPoolFactory
         AND tx_status = 'SUCCESS'
 
@@ -79,6 +80,7 @@ FINAL AS (
         block_number,
         block_timestamp,
         tx_hash,
+        event_index,
         p.contract_address,
         token0_address,
         token1_address,
@@ -92,7 +94,7 @@ FINAL AS (
             init_tick,
             0
         ) AS init_tick,
-        p._log_id AS _id,
+        p._log_id,
         p._inserted_timestamp
     FROM
         created_pools p
@@ -100,7 +102,20 @@ FINAL AS (
         ON p.pool_address = i.contract_address
 )
 SELECT
-    *
+    block_number,
+    block_timestamp,
+    tx_hash,
+    event_index,
+    contract_address,
+    token0_address,
+    token1_address,
+    fee,
+    fee_percent,
+    tick_spacing,
+    pool_address,
+    init_tick,
+    _log_id,
+    _inserted_timestamp
 FROM
     FINAL qualify(ROW_NUMBER() over(PARTITION BY pool_address
 ORDER BY

@@ -17,6 +17,76 @@ WITH contracts AS (
   FROM
     {{ ref('silver__contracts') }}
 ),
+bladeswap AS (
+  SELECT
+    block_number,
+    block_timestamp,
+    tx_hash,
+    contract_address,
+    pool_address,
+    NULL AS pool_name,
+    NULL AS fee,
+    NULL AS tick_spacing,
+    token0,
+    token1,
+    NULL AS token2,
+    NULL AS token3,
+    NULL AS token4,
+    NULL AS token5,
+    NULL AS token6,
+    NULL AS token7,
+    'bladeswap' AS platform,
+    'v1' AS version,
+    _log_id AS _id,
+    _inserted_timestamp
+  FROM
+    {{ ref('silver_dex__bladeswap_pools') }}
+
+{% if is_incremental() and 'bladeswap' not in var('HEAL_MODELS') %}
+WHERE
+  _inserted_timestamp >= (
+    SELECT
+      MAX(_inserted_timestamp) - INTERVAL '{{ var("LOOKBACK", "4 hours") }}'
+    FROM
+      {{ this }}
+  )
+{% endif %}
+),
+bladeswap_v3 AS (
+  SELECT
+    block_number,
+    block_timestamp,
+    tx_hash,
+    contract_address,
+    pool_address,
+    NULL AS pool_name,
+    fee,
+    tick_spacing,
+    token0_address AS token0,
+    token1_address AS token1,
+    NULL AS token2,
+    NULL AS token3,
+    NULL AS token4,
+    NULL AS token5,
+    NULL AS token6,
+    NULL AS token7,
+    'bladeswap-v3' AS platform,
+    'v3' AS version,
+    _log_id AS _id,
+    _inserted_timestamp
+  FROM
+    {{ ref('silver_dex__bladeswap_pools_v3') }}
+
+{% if is_incremental() and 'bladeswap_v3' not in var('HEAL_MODELS') %}
+WHERE
+  _inserted_timestamp >= (
+    SELECT
+      MAX(_inserted_timestamp) - INTERVAL '{{ var("LOOKBACK", "4 hours") }}'
+    FROM
+      {{ this }}
+  )
+{% endif %}
+),
 blaster AS (
   SELECT
     block_number,
@@ -72,7 +142,7 @@ blaster_v3 AS (
     NULL AS token7,
     'blasterswap-v3' AS platform,
     'v3' AS version,
-    _id,
+    _log_id AS _id,
     _inserted_timestamp
   FROM
     {{ ref('silver_dex__blaster_pools_v3') }}
@@ -142,7 +212,7 @@ ring_v3 AS (
     NULL AS token7,
     'ring-v3' AS platform,
     'v3' AS version,
-    _id,
+    _log_id AS _id,
     _inserted_timestamp
   FROM
     {{ ref('silver_dex__ring_pools_v3') }}
@@ -212,7 +282,7 @@ sushi_v3 AS (
     NULL AS token7,
     'sushiswap-v3' AS platform,
     'v3' AS version,
-    _id,
+    _log_id AS _id,
     _inserted_timestamp
   FROM
     {{ ref('silver_dex__sushi_pools_v3') }}
@@ -282,7 +352,7 @@ thruster_v3 AS (
     NULL AS token7,
     'thruster-v3' AS platform,
     'v3' AS version,
-    _id,
+    _log_id AS _id,
     _inserted_timestamp
   FROM
     {{ ref('silver_dex__thruster_pools_v3') }}
@@ -298,6 +368,16 @@ WHERE
 {% endif %}
 ),
 all_pools AS (
+  SELECT
+    *
+  FROM
+    bladeswap
+  UNION ALL
+  SELECT
+    *
+  FROM
+    bladeswap_v3
+  UNION ALL
   SELECT
     *
   FROM
@@ -349,6 +429,7 @@ complete_lps AS (
       WHEN pool_name IS NOT NULL THEN pool_name
       WHEN pool_name IS NULL
       AND platform IN (
+        'bladeswap-v3',
         'blasterswap-v3',
         'ring-v3',
         'sushiswap-v3',
@@ -374,6 +455,7 @@ complete_lps AS (
           0
         ),
         CASE
+          WHEN platform = 'bladeswap-v3' THEN ' BLP'
           WHEN platform = 'blasterswap-v3' THEN ' BLP'
           WHEN platform = 'ring-v3' THEN ' RLP'
           WHEN platform = 'sushiswap-v3' THEN ' SLP'
@@ -494,6 +576,7 @@ heal_model AS (
       WHEN pool_name IS NOT NULL THEN pool_name
       WHEN pool_name IS NULL
       AND platform IN (
+        'bladeswap-v3',
         'blasterswap-v3',
         'ring-v3',
         'sushiswap-v3',
@@ -519,6 +602,7 @@ heal_model AS (
           0
         ),
         CASE
+          WHEN platform = 'bladeswap-v3' THEN ' BLP'
           WHEN platform = 'blasterswap-v3' THEN ' BLP'
           WHEN platform = 'ring-v3' THEN ' RLP'
           WHEN platform = 'sushiswap-v3' THEN ' SLP'

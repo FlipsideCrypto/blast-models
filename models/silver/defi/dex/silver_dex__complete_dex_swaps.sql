@@ -8,12 +8,14 @@
   tags = ['curated','reorg','heal']
 ) }}
 
-WITH blaster AS (
+WITH 
+bladeswap AS (
 
   SELECT
     block_number,
     block_timestamp,
     tx_hash,
+    event_index,
     origin_function_signature,
     origin_from_address,
     origin_to_address,
@@ -25,7 +27,87 @@ WITH blaster AS (
     token_out,
     sender,
     tx_to,
+    platform,
+    'v1' AS version,
+    _log_id,
+    _inserted_timestamp
+  FROM
+    {{ ref('silver_dex__bladeswap_swaps') }}
+
+{% if is_incremental() and 'bladeswap' not in var('HEAL_MODELS') %}
+WHERE
+  _inserted_timestamp >= (
+    SELECT
+      MAX(_inserted_timestamp) - INTERVAL '{{ var("LOOKBACK", "4 hours") }}'
+    FROM
+      {{ this }}
+  )
+{% endif %}
+),
+bladeswap_v3 AS (
+  SELECT
+    block_number,
+    block_timestamp,
+    tx_hash,
     event_index,
+    origin_function_signature,
+    origin_from_address,
+    origin_to_address,
+    pool_address AS contract_address,
+    'Swap' AS event_name,
+    CASE
+      WHEN amount0_unadj > 0 THEN ABS(amount0_unadj)
+      ELSE ABS(amount1_unadj)
+    END AS amount_in_unadj,
+    CASE
+      WHEN amount0_unadj < 0 THEN ABS(amount0_unadj)
+      ELSE ABS(amount1_unadj)
+    END AS amount_out_unadj,
+    CASE
+      WHEN amount0_unadj > 0 THEN token0_address
+      ELSE token1_address
+    END AS token_in,
+    CASE
+      WHEN amount0_unadj < 0 THEN token0_address
+      ELSE token1_address
+    END AS token_out,
+    sender,
+    recipient AS tx_to,
+    'bladeswap-v3' AS platform,
+    'v3' AS version,
+    _log_id,
+    _inserted_timestamp
+  FROM
+    {{ ref('silver_dex__bladeswap_swaps_v3') }}
+
+{% if is_incremental() and 'bladeswap_v3' not in var('HEAL_MODELS') %}
+WHERE
+  _inserted_timestamp >= (
+    SELECT
+      MAX(_inserted_timestamp) - INTERVAL '{{ var("LOOKBACK", "4 hours") }}'
+    FROM
+      {{ this }}
+  )
+{% endif %}
+),
+blaster AS (
+
+  SELECT
+    block_number,
+    block_timestamp,
+    tx_hash,
+    event_index,
+    origin_function_signature,
+    origin_from_address,
+    origin_to_address,
+    contract_address,
+    event_name,
+    amount_in_unadj,
+    amount_out_unadj,
+    token_in,
+    token_out,
+    sender,
+    tx_to,
     platform,
     'v1' AS version,
     _log_id,
@@ -48,6 +130,7 @@ blaster_v3 AS (
     block_number,
     block_timestamp,
     tx_hash,
+    event_index,
     origin_function_signature,
     origin_from_address,
     origin_to_address,
@@ -71,7 +154,6 @@ blaster_v3 AS (
     END AS token_out,
     sender,
     recipient AS tx_to,
-    event_index,
     'blasterswap-v3' AS platform,
     'v3' AS version,
     _log_id,
@@ -94,6 +176,7 @@ ring AS (
     block_number,
     block_timestamp,
     tx_hash,
+    event_index,
     origin_function_signature,
     origin_from_address,
     origin_to_address,
@@ -105,7 +188,6 @@ ring AS (
     token_out,
     sender,
     tx_to,
-    event_index,
     platform,
     'v1' AS version,
     _log_id,
@@ -128,6 +210,7 @@ ring_v3 AS (
     block_number,
     block_timestamp,
     tx_hash,
+    event_index,
     origin_function_signature,
     origin_from_address,
     origin_to_address,
@@ -151,7 +234,6 @@ ring_v3 AS (
     END AS token_out,
     sender,
     recipient AS tx_to,
-    event_index,
     'ring-v3' AS platform,
     'v3' AS version,
     _log_id,
@@ -174,6 +256,7 @@ sushi AS (
     block_number,
     block_timestamp,
     tx_hash,
+    event_index,
     origin_function_signature,
     origin_from_address,
     origin_to_address,
@@ -185,7 +268,6 @@ sushi AS (
     token_out,
     sender,
     tx_to,
-    event_index,
     platform,
     'v1' AS version,
     _log_id,
@@ -208,6 +290,7 @@ sushi_v3 AS (
     block_number,
     block_timestamp,
     tx_hash,
+    event_index,
     origin_function_signature,
     origin_from_address,
     origin_to_address,
@@ -231,7 +314,6 @@ sushi_v3 AS (
     END AS token_out,
     sender,
     recipient AS tx_to,
-    event_index,
     'sushiswap-v3' AS platform,
     'v3' AS version,
     _log_id,
@@ -254,6 +336,7 @@ thruster AS (
     block_number,
     block_timestamp,
     tx_hash,
+    event_index,
     origin_function_signature,
     origin_from_address,
     origin_to_address,
@@ -265,7 +348,6 @@ thruster AS (
     token_out,
     sender,
     tx_to,
-    event_index,
     platform,
     'v1' AS version,
     _log_id,
@@ -288,6 +370,7 @@ thruster_v3 AS (
     block_number,
     block_timestamp,
     tx_hash,
+    event_index,
     origin_function_signature,
     origin_from_address,
     origin_to_address,
@@ -311,7 +394,6 @@ thruster_v3 AS (
     END AS token_out,
     sender,
     recipient AS tx_to,
-    event_index,
     'thruster-v3' AS platform,
     'v3' AS version,
     _log_id,
@@ -330,6 +412,16 @@ WHERE
 {% endif %}
 ),
 all_dex AS (
+  SELECT
+    *
+  FROM
+    bladeswap
+  UNION ALL
+  SELECT
+    *
+  FROM
+    bladeswap_v3
+  UNION ALL
   SELECT
     *
   FROM
@@ -375,6 +467,7 @@ complete_dex_swaps AS (
     s.block_number,
     s.block_timestamp,
     s.tx_hash,
+    s.event_index,
     origin_function_signature,
     origin_from_address,
     origin_to_address,
@@ -432,7 +525,6 @@ complete_dex_swaps AS (
     END AS pool_name,
     sender,
     tx_to,
-    s.event_index,
     s.platform,
     s.version,
     s._log_id,
@@ -488,6 +580,7 @@ heal_model AS (
     t0.block_number,
     t0.block_timestamp,
     t0.tx_hash,
+    t0.event_index,
     origin_function_signature,
     origin_from_address,
     origin_to_address,
@@ -545,7 +638,6 @@ heal_model AS (
     END AS pool_name_heal,
     sender,
     tx_to,
-    t0.event_index,
     t0.platform,
     t0.version,
     t0._log_id,
@@ -798,6 +890,7 @@ SELECT
   block_number,
   block_timestamp,
   tx_hash,
+  event_index,
   origin_function_signature,
   origin_from_address,
   origin_to_address,
@@ -818,7 +911,6 @@ SELECT
   pool_name_heal AS pool_name,
   sender,
   tx_to,
-  event_index,
   platform,
   version,
   _log_id,
@@ -831,6 +923,7 @@ SELECT
   block_number,
   block_timestamp,
   tx_hash,
+  event_index,
   origin_function_signature,
   origin_from_address,
   origin_to_address,
@@ -845,7 +938,6 @@ SELECT
   amount_out_usd,
   sender,
   tx_to,
-  event_index,
   platform,
   version,
   token_in,

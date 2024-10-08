@@ -1,6 +1,6 @@
 version: 2
 models:
-  - name: silver_dex__ring_swaps
+  - name: silver_dex__bladeswap_swaps
 
     tests:
       - dbt_utils.unique_combination_of_columns:
@@ -81,3 +81,4 @@ models:
           - not_null
           - dbt_expectations.expect_column_values_to_match_regex:
               regex: 0[xX][0-9a-fA-F]+
+

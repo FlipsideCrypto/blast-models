@@ -47,7 +47,7 @@ WITH swaps_base AS (
     FROM
         {{ ref('silver__logs') }}
         l
-        INNER JOIN {{ ref('silver_dex__blaster_pools') }}
+        INNER JOIN {{ ref('silver_dex__bladeswap_pools') }}
         p
         ON p.pool_address = l.contract_address
     WHERE
@@ -103,7 +103,7 @@ SELECT
         WHEN amount1Out <> 0 THEN token1
     END AS token_out,
     'Swap' AS event_name,
-    'blasterswap' AS platform,
+    'bladeswap' AS platform,
     _log_id,
     _inserted_timestamp
 FROM

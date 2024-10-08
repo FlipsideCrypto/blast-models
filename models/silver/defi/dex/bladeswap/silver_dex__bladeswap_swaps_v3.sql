@@ -13,51 +13,67 @@ WITH swaps_base AS (
         l.block_timestamp,
         l.tx_hash,
         l.event_index,
-        origin_function_signature,
-        origin_from_address,
-        origin_to_address,
+        l.origin_function_signature,
+        l.origin_from_address,
+        l.origin_to_address,
         l.contract_address,
         regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
+        CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS sender,
+        CONCAT('0x', SUBSTR(topics [2] :: STRING, 27, 40)) AS recipient,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
+                's2c',
                 segmented_data [0] :: STRING
             )
-        ) AS amount0In,
+        ) AS amount0_unadj,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
+                's2c',
                 segmented_data [1] :: STRING
             )
-        ) AS amount1In,
+        ) AS amount1_unadj,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
+                's2c',
                 segmented_data [2] :: STRING
             )
-        ) AS amount0Out,
+        ) AS sqrtPriceX96,
         TRY_TO_NUMBER(
             utils.udf_hex_to_int(
+                's2c',
                 segmented_data [3] :: STRING
             )
-        ) AS amount1Out,
-        CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS sender,
-        CONCAT('0x', SUBSTR(topics [2] :: STRING, 27, 40)) AS tx_to,
-        token0,
-        token1,
+        ) AS liquidity,
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                's2c',
+                segmented_data [4] :: STRING
+            )
+        ) AS tick,
+        token0_address,
+        token1_address,
+        pool_address,
+        tick_spacing,
+        fee,
         l._log_id,
         l._inserted_timestamp
     FROM
         {{ ref('silver__logs') }}
         l
-        INNER JOIN {{ ref('silver_dex__blaster_pools') }}
+        INNER JOIN {{ ref('silver_dex__bladeswap_pools_v3') }}
         p
         ON p.pool_address = l.contract_address
     WHERE
-        topics [0] :: STRING = '0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822'
+        l.block_timestamp :: DATE >= '2024-01-01'
+        AND topics [0] :: STRING = '0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67'
         AND tx_status = 'SUCCESS'
 
 {% if is_incremental() %}
 AND l._inserted_timestamp >= (
     SELECT
-        MAX(_inserted_timestamp) - INTERVAL '12 hours'
+        MAX(
+            _inserted_timestamp
+        ) - INTERVAL '12 hours'
     FROM
         {{ this }}
 )
@@ -72,41 +88,20 @@ SELECT
     origin_from_address,
     origin_to_address,
     contract_address,
+    pool_address,
+    recipient,
     sender,
-    tx_to,
-    amount0In,
-    amount1In,
-    amount0Out,
-    amount1Out,
-    token0,
-    token1,
-    CASE
-        WHEN amount0In <> 0
-        AND amount1In <> 0
-        AND amount0Out <> 0 THEN amount1In
-        WHEN amount0In <> 0 THEN amount0In
-        WHEN amount1In <> 0 THEN amount1In
-    END AS amount_in_unadj,
-    CASE
-        WHEN amount0Out <> 0 THEN amount0Out
-        WHEN amount1Out <> 0 THEN amount1Out
-    END AS amount_out_unadj,
-    CASE
-        WHEN amount0In <> 0
-        AND amount1In <> 0
-        AND amount0Out <> 0 THEN token1
-        WHEN amount0In <> 0 THEN token0
-        WHEN amount1In <> 0 THEN token1
-    END AS token_in,
-    CASE
-        WHEN amount0Out <> 0 THEN token0
-        WHEN amount1Out <> 0 THEN token1
-    END AS token_out,
-    'Swap' AS event_name,
-    'blasterswap' AS platform,
+    fee,
+    tick,
+    tick_spacing,
+    liquidity,
+    token0_address,
+    token1_address,
+    amount0_unadj,
+    amount1_unadj,
     _log_id,
     _inserted_timestamp
 FROM
-    swaps_base
-WHERE
-    token_in <> token_out
+    swaps_base qualify(ROW_NUMBER() over(PARTITION BY _log_id
+ORDER BY
+    _inserted_timestamp DESC)) = 1

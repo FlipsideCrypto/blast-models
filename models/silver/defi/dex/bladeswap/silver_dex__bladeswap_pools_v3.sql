@@ -17,22 +17,46 @@ WITH created_pools AS (
         regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
         LOWER(CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40))) AS token0_address,
         LOWER(CONCAT('0x', SUBSTR(topics [2] :: STRING, 27, 40))) AS token1_address,
-        utils.udf_hex_to_int(
-            's2c',
-            topics [3] :: STRING
-        ) :: INTEGER AS fee,
-        utils.udf_hex_to_int(
-            's2c',
-            segmented_data [0] :: STRING
-        ) :: INTEGER AS tick_spacing,
-        CONCAT('0x', SUBSTR(segmented_data [1] :: STRING, 25, 40)) AS pool_address,
+        CONCAT('0x', SUBSTR(segmented_data [0] :: STRING, 25, 40)) AS pool_address,
         _log_id,
         _inserted_timestamp
     FROM
         {{ ref('silver__logs') }}
     WHERE
-        topics [0] :: STRING = '0x783cca1c0412dd0d695e784568c96da2e9c22ff989357a2e8b1d9b2b4e6b7118'
-        AND contract_address = '0x7680d4b43f3d1d54d6cfeeb2169463bfa7a6cf0d' --Sushi/UniswapV3Factory
+        topics [0] :: STRING = '0x91ccaa7a278130b65168c3a0c8d3bcae84cf5e43704342bd3ec0b59e59c036db'
+        AND contract_address = '0xa87dbf5082af26c9a6ab2b854e378f704638cca5' --AlgebraFactory
+        AND tx_status = 'SUCCESS'
+
+{% if is_incremental() %}
+AND _inserted_timestamp >= (
+    SELECT
+        MAX(
+            _inserted_timestamp
+        ) - INTERVAL '12 hours'
+    FROM
+        {{ this }}
+)
+{% endif %}
+),
+pool_info AS (
+    SELECT
+        contract_address,
+        topics [0] :: STRING AS topics_0,
+        topics [1] :: STRING AS topics_1,
+        topics [2] :: STRING AS topics_2,
+        topics [3] :: STRING AS topics_3,
+        DATA,
+        regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
+        _log_id,
+        _inserted_timestamp
+    FROM
+        {{ ref('silver__logs') }}
+    WHERE
+        topics [0] :: STRING IN (
+            '0x98636036cb66a9c19a37435efc1e90142190214e8abeb821bdba3f2990dd4c95',
+            '0x598b9f043c813aa6be3426ca60d1c65d17256312890be5118dab55b0775ebe2a',
+            '0x01413b1d5d4c359e9a0daa7909ecda165f6e8c51fe2ff529d74b22a5a7c02645'
+        )
         AND tx_status = 'SUCCESS'
 
 {% if is_incremental() %}
@@ -49,7 +73,7 @@ AND _inserted_timestamp >= (
 initial_info AS (
     SELECT
         contract_address,
-        regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
+        segmented_data,
         utils.udf_hex_to_int('s2c', CONCAT('0x', segmented_data [0] :: STRING)) :: FLOAT AS init_sqrtPriceX96,
         utils.udf_hex_to_int('s2c', CONCAT('0x', segmented_data [1] :: STRING)) :: FLOAT AS init_tick,
         pow(
@@ -59,21 +83,33 @@ initial_info AS (
         _log_id,
         _inserted_timestamp
     FROM
-        {{ ref('silver__logs') }}
+        pool_info
     WHERE
-        topics [0] :: STRING = '0x98636036cb66a9c19a37435efc1e90142190214e8abeb821bdba3f2990dd4c95'
-        AND tx_status = 'SUCCESS'
-
-{% if is_incremental() %}
-AND _inserted_timestamp >= (
+        topics_0 = '0x98636036cb66a9c19a37435efc1e90142190214e8abeb821bdba3f2990dd4c95'
+),
+fee_info AS (
     SELECT
-        MAX(
-            _inserted_timestamp
-        ) - INTERVAL '12 hours'
+        contract_address,
+        segmented_data,
+        utils.udf_hex_to_int('s2c', CONCAT('0x', segmented_data [0] :: STRING)) :: FLOAT AS fee,
+        _log_id,
+        _inserted_timestamp
     FROM
-        {{ this }}
-)
-{% endif %}
+        pool_info
+    WHERE
+        topics_0 = '0x598b9f043c813aa6be3426ca60d1c65d17256312890be5118dab55b0775ebe2a'
+),
+tickspacing_info AS (
+    SELECT
+        contract_address,
+        segmented_data,
+        utils.udf_hex_to_int('s2c', CONCAT('0x', segmented_data [0] :: STRING)) :: FLOAT AS tick_spacing,
+        _log_id,
+        _inserted_timestamp
+    FROM
+        pool_info
+    WHERE
+        topics_0 = '0x01413b1d5d4c359e9a0daa7909ecda165f6e8c51fe2ff529d74b22a5a7c02645'
 ),
 FINAL AS (
     SELECT
@@ -100,6 +136,10 @@ FINAL AS (
         created_pools p
         LEFT JOIN initial_info i
         ON p.pool_address = i.contract_address
+        LEFT JOIN fee_info f
+        ON p.pool_address = f.contract_address
+        LEFT JOIN tickspacing_info t
+        ON p.pool_address = t.contract_address
 )
 SELECT
     block_number,
