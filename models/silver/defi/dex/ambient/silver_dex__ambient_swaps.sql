@@ -96,7 +96,10 @@ SELECT
     origin_to_address,
     contract_address,
     origin_from_address AS sender,
-    sender AS tx_to,
+    CASE
+        WHEN origin_function_signature = '0xa62ea46d' THEN origin_to_address
+        ELSE origin_from_address
+    END AS tx_to,
     token_in,
     token_out,
     amount_in_unadj,
