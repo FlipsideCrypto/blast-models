@@ -20,36 +20,26 @@ WITH swaps_base AS (
         regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
         CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS sender,
         CONCAT('0x', SUBSTR(topics [2] :: STRING, 27, 40)) AS recipient,
-        TRY_TO_NUMBER(
-            utils.udf_hex_to_int(
-                's2c',
-                segmented_data [0] :: STRING
-            )
-        ) AS amount0_unadj,
-        TRY_TO_NUMBER(
-            utils.udf_hex_to_int(
-                's2c',
-                segmented_data [1] :: STRING
-            )
-        ) AS amount1_unadj,
-        TRY_TO_NUMBER(
-            utils.udf_hex_to_int(
-                's2c',
-                segmented_data [2] :: STRING
-            )
-        ) AS sqrtPriceX96,
-        TRY_TO_NUMBER(
-            utils.udf_hex_to_int(
-                's2c',
-                segmented_data [3] :: STRING
-            )
-        ) AS liquidity,
-        TRY_TO_NUMBER(
-            utils.udf_hex_to_int(
-                's2c',
-                segmented_data [4] :: STRING
-            )
-        ) AS tick,
+        utils.udf_hex_to_int(
+            's2c',
+            segmented_data [0] :: STRING
+        ) :: FLOAT AS amount0_unadj,
+        utils.udf_hex_to_int(
+            's2c',
+            segmented_data [1] :: STRING
+        ) :: FLOAT AS amount1_unadj,
+        utils.udf_hex_to_int(
+            's2c',
+            segmented_data [2] :: STRING
+        ) :: FLOAT AS sqrtPriceX96,
+        utils.udf_hex_to_int(
+            's2c',
+            segmented_data [3] :: STRING
+        ) :: FLOAT AS liquidity,
+        utils.udf_hex_to_int(
+            's2c',
+            segmented_data [4] :: STRING
+        ) :: FLOAT AS tick,
         token0_address,
         token1_address,
         pool_address,
