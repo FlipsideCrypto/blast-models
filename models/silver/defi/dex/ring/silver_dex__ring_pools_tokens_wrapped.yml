@@ -1,0 +1,16 @@
+version: 2
+models:
+  - name: silver_dex__ring_pools_tokens_wrapped
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - WRAPPED_TOKEN
+    columns:
+      - name: BLOCK_NUMBER
+        tests:
+          - not_null
+      - name: ORIGINAL_TOKEN
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: 0[xX][0-9a-fA-F]+
