@@ -11,6 +11,7 @@ profile: "blast"
 # These configurations specify where dbt should look for different types of files.
 # The `source-paths` config, for example, states that models in this project can be
 # found in the "models/" directory. You probably won't need to change these!
+
 model-paths: ["models"]
 analysis-paths: ["analysis"]
 test-paths: ["tests"]
@@ -25,7 +26,8 @@ clean-targets: # directories to be removed by `dbt clean`
   - "dbt_packages"
 
 tests:
-  +store_failures: true # all tests
+  blast_models:
+    +store_failures: true # all tests
 
 on-run-start:
   - "{{ create_sps() }}"
@@ -49,9 +51,16 @@ query-comment:
 # Full documentation: https://docs.getdbt.com/docs/configuring-models
 
 models:
-  +copy_grants: true
-  +on_schema_change: "append_new_columns"
-  
+  blast_models:
+    +copy_grants: true
+    +on_schema_change: "append_new_columns"
+  fsc_evm:
+    +enabled: false
+    core_package:
+      bronze:
+        bronze__blocks:
+          +enabled: True
+          
 # In this example config, we tell dbt to build all models in the example/ directory
 # as tables. These settings can be overridden in the individual model files
 # using the `{{ config(...) }}` macro.
