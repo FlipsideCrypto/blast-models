@@ -2,7 +2,7 @@
     materialized = 'view',
     persist_docs ={ "relation": true,
     "columns": true },
-    meta ={ 'database_tags':{ 'table':{ 'PROTOCOL': 'BLADESWAP, BLASTERSWAP, RING, SUSHI, THRUSTER',
+    meta ={ 'database_tags':{ 'table':{ 'PROTOCOL': 'BLADESWAP, BLASTERSWAP, FENIX, RING, SUSHI, THRUSTER',
     'PURPOSE': 'DEX, LIQUIDITY, POOLS, LP, SWAPS',} } }
 ) }}
 
