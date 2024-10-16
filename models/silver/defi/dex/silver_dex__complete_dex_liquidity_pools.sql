@@ -157,6 +157,41 @@ WHERE
   )
 {% endif %}
 ),
+fenix_v3 AS (
+  SELECT
+    block_number,
+    block_timestamp,
+    tx_hash,
+    contract_address,
+    pool_address,
+    NULL AS pool_name,
+    fee,
+    tick_spacing,
+    token0_address AS token0,
+    token1_address AS token1,
+    NULL AS token2,
+    NULL AS token3,
+    NULL AS token4,
+    NULL AS token5,
+    NULL AS token6,
+    NULL AS token7,
+    'fenix-v3' AS platform,
+    'v3' AS version,
+    _log_id AS _id,
+    _inserted_timestamp
+  FROM
+    {{ ref('silver_dex__fenix_pools_v3') }}
+
+{% if is_incremental() and 'fenix_v3' not in var('HEAL_MODELS') %}
+WHERE
+  _inserted_timestamp >= (
+    SELECT
+      MAX(_inserted_timestamp) - INTERVAL '{{ var("LOOKBACK", "4 hours") }}'
+    FROM
+      {{ this }}
+  )
+{% endif %}
+),
 ring AS (
   SELECT
     block_number,
@@ -391,6 +426,11 @@ all_pools AS (
   SELECT
     *
   FROM
+    fenix_v3
+  UNION ALL
+  SELECT
+    *
+  FROM
     ring
   UNION ALL
   SELECT
@@ -431,6 +471,7 @@ complete_lps AS (
       AND platform IN (
         'bladeswap-v3',
         'blasterswap-v3',
+        'fenix-v3',
         'ring-v3',
         'sushiswap-v3',
         'thruster-v3'
@@ -457,6 +498,7 @@ complete_lps AS (
         CASE
           WHEN platform = 'bladeswap-v3' THEN ' BLP'
           WHEN platform = 'blasterswap-v3' THEN ' BLP'
+          WHEN platform = 'fenix-v3' THEN ' FLP'
           WHEN platform = 'ring-v3' THEN ' RLP'
           WHEN platform = 'sushiswap-v3' THEN ' SLP'
           WHEN platform = 'thruster-v3' THEN ' TLP'
@@ -578,6 +620,7 @@ heal_model AS (
       AND platform IN (
         'bladeswap-v3',
         'blasterswap-v3',
+        'fenix-v3',
         'ring-v3',
         'sushiswap-v3',
         'thruster-v3'
@@ -604,6 +647,7 @@ heal_model AS (
         CASE
           WHEN platform = 'bladeswap-v3' THEN ' BLP'
           WHEN platform = 'blasterswap-v3' THEN ' BLP'
+          WHEN platform = 'fenix-v3' THEN ' FLP'
           WHEN platform = 'ring-v3' THEN ' RLP'
           WHEN platform = 'sushiswap-v3' THEN ' SLP'
           WHEN platform = 'thruster-v3' THEN ' TLP'
