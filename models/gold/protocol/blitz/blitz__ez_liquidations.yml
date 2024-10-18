@@ -1,54 +1,54 @@
 version: 2
 models:
   - name: blitz__ez_liquidations
-    description: '{{ doc("blitz_ez_liquidations") }}'
+    description: '{{ doc("evm_blitz_ez_liquidations") }}'
 
     columns:
       - name: BLOCK_NUMBER
-        description: '{{ doc("blast_block_number") }}'
+        description: '{{ doc("evm_block_number") }}'
       - name: BLOCK_TIMESTAMP
-        description: '{{ doc("blast_block_timestamp") }}'
+        description: '{{ doc("evm_block_timestamp") }}'
       - name: TX_HASH
-        description: '{{ doc("blast_logs_tx_hash") }}'
+        description: '{{ doc("evm_logs_tx_hash") }}'
       - name: CONTRACT_ADDRESS
-        description: '{{ doc("blast_logs_contract_address") }}'
+        description: '{{ doc("evm_logs_contract_address") }}'
       - name: EVENT_NAME
-        description: '{{ doc("blast_event_name") }}'
+        description: '{{ doc("evm_event_name") }}'
       - name: EVENT_INDEX
-        description: '{{ doc("blast_event_index") }}'
+        description: '{{ doc("evm_event_index") }}'
       - name: ORIGIN_FUNCTION_SIGNATURE
-        description: '{{ doc("nft_origin_sig") }}'
+        description: '{{ doc("evm_nft_origin_sig") }}'
       - name: ORIGIN_FROM_ADDRESS
-        description: '{{ doc("blast_origin_from") }}'
+        description: '{{ doc("evm_origin_from") }}'
       - name: ORIGIN_TO_ADDRESS
-        description: '{{ doc("blast_origin_to") }}'
+        description: '{{ doc("evm_origin_to") }}'
       - name: DIGEST
-        description: '{{ doc("blitz_digest") }}'
+        description: '{{ doc("evm_blitz_digest") }}'
       - name: TRADER
-        description: '{{ doc("blitz_trader") }}'
+        description: '{{ doc("evm_blitz_trader") }}'
       - name: SUBACCOUNT
-        description: '{{ doc("blitz_subaccount") }}'
+        description: '{{ doc("evm_blitz_subaccount") }}'
       - name: PRODUCT_ID
-        description: '{{ doc("blitz_product_id_liq") }}'
+        description: '{{ doc("evm_blitz_product_id_liq") }}'
       - name: HEALTH_GROUP  
-        description: '{{ doc("blitz_health_group") }}'
+        description: '{{ doc("evm_blitz_health_group") }}'
       - name: HEALTH_GROUP_SYMBOL
-        description: '{{ doc("blitz_health_group_symbol") }}'
+        description: '{{ doc("evm_blitz_health_group_symbol") }}'
       - name: AMOUNT_UNADJ
-        description: '{{ doc("blitz_amount_unadj") }}'
+        description: '{{ doc("evm_blitz_amount_unadj") }}'
       - name: AMOUNT
-        description: '{{ doc("blitz_amount") }}'
+        description: '{{ doc("evm_blitz_amount") }}'
       - name: AMOUNT_QUOTE_UNADJ
-        description: '{{ doc("blitz_amount_quote_unadj") }}'
+        description: '{{ doc("evm_blitz_amount_quote_unadj") }}'
       - name: AMOUNT_QUOTE
-        description: '{{ doc("blitz_amount_quote") }}'
+        description: '{{ doc("evm_blitz_amount_quote") }}'
       - name: IS_ENCODE_SPREAD
-        description: '{{ doc("blitz_is_encode_spread") }}'
+        description: '{{ doc("evm_blitz_is_encode_spread") }}'
       - name: SPREAD_PRODUCT_IDS
-        description: '{{ doc("blitz_decoded_spread_product_ids") }}'
+        description: '{{ doc("evm_blitz_decoded_spread_product_ids") }}'
       - name: EZ_LIQUIDATIONS_ID
-        description: '{{ doc("pk") }}'
+        description: '{{ doc("evm_pk") }}'
       - name: INSERTED_TIMESTAMP
-        description: '{{ doc("inserted_timestamp") }}'   
+        description: '{{ doc("evm_inserted_timestamp") }}'   
       - name: MODIFIED_TIMESTAMP
-        description: '{{ doc("modified_timestamp") }}' 
+        description: '{{ doc("evm_modified_timestamp") }}' 
