@@ -1,7 +1,7 @@
 version: 2
 models:
   - name: blitz__ez_account_stats
-    description: '{{ doc("evm_blitz_ez_account_stats") }}'
+    description: '{{ doc("evm_blitz_account_stats") }}'
 
     columns:
       - name: SUBACCOUNT

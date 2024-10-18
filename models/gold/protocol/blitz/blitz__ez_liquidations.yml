@@ -1,7 +1,7 @@
 version: 2
 models:
   - name: blitz__ez_liquidations
-    description: '{{ doc("evm_blitz_ez_liquidations") }}'
+    description: '{{ doc("evm_blitz_liquidations") }}'
 
     columns:
       - name: BLOCK_NUMBER

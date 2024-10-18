@@ -37,7 +37,7 @@ models:
       - name: TX_STATUS
         description: '{{ doc("evm_tx_status") }}' 
       - name: SUB_TRACES
-        description: '{{ doc("evm_traces_sub") }}' 
+        description: '{{ doc("evm_sub_traces") }}' 
       - name: TRACE_STATUS
         description: The status of the trace, either `SUCCESS` or `FAIL`
       - name: ERROR_REASON

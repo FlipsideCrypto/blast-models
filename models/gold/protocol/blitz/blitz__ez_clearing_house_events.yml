@@ -1,7 +1,7 @@
 version: 2
 models:
   - name: blitz__ez_clearing_house_events
-    description: '{{ doc("evm_blitz_ez_clearing_house_events") }}'
+    description: '{{ doc("evm_blitz_clearing_house_events") }}'
 
     columns:
       - name: BLOCK_NUMBER

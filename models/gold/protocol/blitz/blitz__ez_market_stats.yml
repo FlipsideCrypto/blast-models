@@ -1,7 +1,7 @@
 version: 2
 models:
   - name: blitz__ez_market_stats
-    description: '{{ doc("evm_blitz_ez_market_stats") }}'
+    description: '{{ doc("evm_blitz_market_stats") }}'
 
     columns:
       - name: HOUR

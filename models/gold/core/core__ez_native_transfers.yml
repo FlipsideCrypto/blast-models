@@ -27,13 +27,13 @@ models:
       - name: TO_ADDRESS
         description: '{{ doc("evm_transfer_to_address") }}'
       - name: AMOUNT
-        description: '{{ doc("evm_eth_amount") }}'
+        description: '{{ doc("evm_amount") }}'
       - name: AMOUNT_PRECISE_RAW
         description: '{{ doc("evm_precise_amount_unadjusted") }}'
       - name: AMOUNT_PRECISE
         description: '{{ doc("evm_precise_amount_adjusted") }}'
       - name: AMOUNT_USD
-        description: '{{ doc("evm_eth_amount_usd") }}' 
+        description: '{{ doc("evm_amount_usd") }}' 
       - name: EZ_NATIVE_TRANSFERS_ID
         description: '{{ doc("evm_pk") }}'   
       - name: INSERTED_TIMESTAMP

@@ -1,7 +1,7 @@
 version: 2
 models:
   - name: blitz__ez_edge_trades
-    description: '{{ doc("evm_blitz_ez_edge_trades") }}'
+    description: '{{ doc("evm_blitz_edge_trades") }}'
 
     columns:
       - name: BLOCK_NUMBER
