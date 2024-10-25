@@ -73,9 +73,9 @@ models:
         core:
           +enabled: false
     decoder_package:
-      +enabled: true
-      decoded_traces:
-        +enabled: false
+      +enabled: false
+      decoded_logs:
+        +enabled: true
     github_actions_package:
       +enabled: true
   
