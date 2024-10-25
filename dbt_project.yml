@@ -69,13 +69,9 @@ models:
           silver__confirm_blocks:
             +enabled: true
       gold:
-        +enabled: false
+        +enabled: true
         core:
           +enabled: false
-        labels:
-          +enabled: true
-        prices:
-          +enabled: true
     decoder_package:
       +enabled: true
     github_actions_package:
@@ -161,10 +157,9 @@ vars:
 
   ### PRICES ###
   ## REQUIRED
-  PRICES_SYMBOLS: 'ETH' 
-  PRICES_PLATFORMS: 'Blast' 
-  # PRICES_BLOCKCHAINS: 'blast' (defaults to GLOBAL_PROD_DB_NAME)
-  # PRICES_NATIVE_BLOCKCHAINS: 'ethereum' -- add to fsc-evm
+  PRICES_NATIVE_SYMBOLS: 'ETH' 
+  PRICES_NATIVE_BLOCKCHAINS: 'ethereum'
+  PRICES_PROVIDER_PLATFORMS: 'Blast' 
 
   ### LABELS
 
