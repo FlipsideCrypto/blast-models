@@ -122,7 +122,7 @@ vars:
   
   ## REQUIRED
   GLOBAL_PROD_DB_NAME: 'blast'
-  GLOBAL_NODE_SECRET_PATH: 'vault/prod/blast/mainnet'
+  GLOBAL_NODE_SECRET_PATH: 'vault/prod/blast/quicknode/mainnet'
   GLOBAL_BLOCKS_PER_HOUR: 1800
   GLOBAL_USES_STREAMLINE_V1: False
   GLOBAL_USES_RECEIPTS_BY_HASH: False
