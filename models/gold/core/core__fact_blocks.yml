@@ -11,7 +11,7 @@ models:
       - name: NETWORK
         description: '{{ doc("evm_network") }}'
       - name: BLOCKCHAIN
-        description: '{{ doc("evm_blockchain") }}'
+        description: '{{ doc("evm_column_deprecation_notice") }}'
       - name: TX_COUNT
         description: '{{ doc("evm_tx_count") }}'
       - name: DIFFICULTY
@@ -25,7 +25,7 @@ models:
       - name: GAS_USED
         description: '{{ doc("evm_gas_used") }}'
       - name: HASH
-        description: '{{ doc("evm_blocks_hash") }}'
+        description: '{{ doc("evm_column_deprecation_notice") }}'
       - name: PARENT_HASH
         description: '{{ doc("evm_parent_hash") }}'
       - name: RECEIPTS_ROOT
@@ -37,7 +37,7 @@ models:
       - name: UNCLE_BLOCKS
         description: '{{ doc("evm_uncle_blocks") }}' 
       - name: BLOCK_HEADER_JSON
-        description: '{{ doc("evm_block_header_json") }}'
+        description: '{{ doc("evm_column_deprecation_notice") }}'
       - name: FACT_BLOCKS_ID
         description: '{{ doc("evm_pk") }}'   
       - name: INSERTED_TIMESTAMP
@@ -45,4 +45,4 @@ models:
       - name: MODIFIED_TIMESTAMP
         description: '{{ doc("evm_modified_timestamp") }}'
       - name: WITHDRAWALS_ROOT
-        description: A hash of the withdrawals that occurred in this block.
+        description: '{{ doc("evm_column_deprecation_notice") }}'

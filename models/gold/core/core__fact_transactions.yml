@@ -9,13 +9,13 @@ models:
       - name: BLOCK_TIMESTAMP
         description: '{{ doc("evm_block_timestamp") }}'
       - name: BLOCK_HASH
-        description: '{{ doc("evm_tx_block_hash") }}' 
+        description: '{{ doc("evm_column_deprecation_notice") }}' 
       - name: TX_HASH
         description: '{{ doc("evm_tx_hash") }}' 
       - name: NONCE
         description: '{{ doc("evm_tx_nonce") }}' 
       - name: POSITION
-        description: '{{ doc("evm_tx_position") }}' 
+        description: '{{ doc("evm_column_deprecation_notice") }}' 
       - name: FROM_ADDRESS
         description: '{{ doc("evm_from_address") }}' 
       - name: TO_ADDRESS
@@ -55,7 +55,7 @@ models:
       - name: MAX_PRIORITY_FEE_PER_GAS
         description: The maximum priority fee per gas of the transaction, in Gwei.
       - name: STATUS
-        description: '{{ doc("evm_tx_status") }}' 
+        description: '{{ doc("evm_column_deprecation_notice") }}' 
       - name: INPUT_DATA
         description: '{{ doc("evm_tx_input_data") }}'
       - name: ORIGIN_FUNCTION_SIGNATURE 
@@ -73,6 +73,6 @@ models:
       - name: MODIFIED_TIMESTAMP
         description: '{{ doc("evm_modified_timestamp") }}' 
       - name: DEPOSIT_NONCE
-        description: The nonce of the deposit transaction.
+        description: '{{ doc("evm_column_deprecation_notice") }}'
       - name: DEPOSIT_RECEIPT_VERSION
-        description: The version of the deposit receipt.
+        description: '{{ doc("evm_column_deprecation_notice") }}'
