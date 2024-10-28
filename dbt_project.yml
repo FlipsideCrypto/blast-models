@@ -61,17 +61,27 @@ models:
   fsc_evm:
     +enabled: false
     core_package:
-      +enabled: true
+      +enabled: false
+      bronze:
+        +enabled: true
       silver:
-        +enabled: true
-        core:
-          +enabled: false
-          silver__confirm_blocks:
-            +enabled: true
+        +enabled: false
+        labels:
+          +enabled: true
+        prices:
+          +enabled: true
       gold:
+        +enabled: false
+        labels:
+          +enabled: true
+        prices:
+          +enabled: true
+      streamline:
         +enabled: true
-        core:
-          +enabled: false
+      utils:
+        +enabled: true
+    curated_package:
+      +enabled: true
     decoder_package:
       +enabled: false
       decoded_logs:
