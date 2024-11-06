@@ -64,6 +64,8 @@ models:
         description: '{{ doc("evm_tx_input_data") }}'
       - name: ORIGIN_FUNCTION_SIGNATURE 
         description: '{{ doc("evm_tx_origin_sig") }}'
+      - name: Y_PARITY
+        description: The y parity of the transaction signature.
       - name: R
         description: The r value of the transaction signature.
       - name: S

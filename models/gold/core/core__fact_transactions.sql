@@ -34,8 +34,9 @@ SELECT
     l1_gas_price,
     l1_gas_used,
     l1_fee_scalar,
-    l1_fee,
     l1_fee_precise,
+    l1_fee,
+    y_parity, --new column
     r,
     s,
     v,

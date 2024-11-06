@@ -50,16 +50,6 @@ models:
         description: '{{ doc("evm_uncle_blocks") }}' 
       - name: BLOCK_HEADER_JSON
         description: '{{ doc("evm_column_deprecation_notice") }}'
-      - name: L1_STATE_ROOT_TX_HASH
-        description: '{{ doc("evm_column_deprecation_notice") }}'
-      - name: L1_STATE_ROOT_BATCH_INDEX
-        description: '{{ doc("evm_column_deprecation_notice") }}'
-      - name: L1_SUBMISSION_TX_HASH
-        description: '{{ doc("evm_column_deprecation_notice") }}'
-      - name: L1_SUBMISSION_BATCH_INDEX
-        description: '{{ doc("evm_column_deprecation_notice") }}'
-      - name: L1_SUBMISSION_DETAILS
-        description: '{{ doc("evm_column_deprecation_notice") }}'
       - name: FACT_BLOCKS_ID
         description: '{{ doc("evm_pk") }}'   
       - name: INSERTED_TIMESTAMP
