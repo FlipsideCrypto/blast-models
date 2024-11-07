@@ -25,7 +25,8 @@ clean-targets: # directories to be removed by `dbt clean`
   - "dbt_packages"
 
 tests:
-  +store_failures: true # all tests
+  blast_models:
+    +store_failures: true # all tests
 
 on-run-start:
   - "{{ create_sps() }}"
@@ -49,8 +50,44 @@ query-comment:
 # Full documentation: https://docs.getdbt.com/docs/configuring-models
 
 models:
-  +copy_grants: true
-  +on_schema_change: "append_new_columns"
+  optimism_models:
+    +copy_grants: true
+    +persist_docs:
+      relation: true
+      columns: true
+    +on_schema_change: "append_new_columns"
+  livequery_models:
+    +materialized: ephemeral
+  fsc_evm:
+    +enabled: false
+    core_package:
+      +enabled: false
+      bronze:
+        +enabled: true
+      silver:
+        +enabled: false
+        labels:
+          +enabled: true
+        prices:
+          +enabled: true
+      gold:
+        +enabled: false
+        labels:
+          +enabled: true
+        prices:
+          +enabled: true
+      streamline:
+        +enabled: true
+      utils:
+        +enabled: true
+    curated_package:
+      +enabled: true
+    decoder_package:
+      +enabled: false
+      decoded_logs:
+        +enabled: true
+    github_actions_package:
+      +enabled: true
   
 # In this example config, we tell dbt to build all models in the example/ directory
 # as tables. These settings can be overridden in the individual model files
@@ -80,9 +117,96 @@ vars:
     dev:
       API_INTEGRATION: AWS_BLAST_API_DEV
       EXTERNAL_FUNCTION_URI: y9d0tuavh6.execute-api.us-east-1.amazonaws.com/stg/
+      ROLES:
+        - AWS_LAMBDA_BLAST_API
+        - INTERNAL_DEV
 
     prod:
       API_INTEGRATION: AWS_BLAST_API
       EXTERNAL_FUNCTION_URI: 42gzudc5si.execute-api.us-east-1.amazonaws.com/prod/
+      ROLES:
+        - AWS_LAMBDA_BLAST_API
+        - INTERNAL_DEV
+        - DBT_CLOUD_BLAST
   
   #### STREAMLINE 2.0 END ####
+
+  #### FSC_EVM BEGIN ####
+
+  ### GLOBAL VARIABLES BEGIN ###
+  
+  ## REQUIRED
+  GLOBAL_PROD_DB_NAME: 'blast'
+  GLOBAL_NODE_SECRET_PATH: 'vault/prod/blast/quicknode/mainnet'
+  GLOBAL_BLOCKS_PER_HOUR: 1800
+  GLOBAL_USES_STREAMLINE_V1: False
+  GLOBAL_USES_RECEIPTS_BY_HASH: False
+  GLOBAL_USES_BLOCKS_TRANSACTIONS_PATH: True
+
+  ### GLOBAL VARIABLES END ###
+
+  ### CORE_PACKAGE VARIABLES BEGIN ###
+
+  ### CORE ###
+  ## REQUIRED
+  BLOCKS_TRANSACTIONS_REALTIME_EXTERNAL_TABLE: 'BLOCKS_TRANSACTIONS'
+  BLOCKS_TRANSACTIONS_HISTORY_EXTERNAL_TABLE: 'BLOCKS_TRANSACTIONS'
+
+  RECEIPTS_REALTIME_EXTERNAL_TABLE: 'RECEIPTS'
+  RECEIPTS_HISTORY_EXTERNAL_TABLE: 'RECEIPTS'
+
+  TRACES_REALTIME_EXTERNAL_TABLE: 'TRACES'
+  TRACES_HISTORY_EXTERNAL_TABLE: 'TRACES'
+
+  CONFIRM_BLOCKS_REALTIME_EXTERNAL_TABLE: 'CONFIRM_BLOCKS'
+  CONFIRM_BLOCKS_HISTORY_EXTERNAL_TABLE: 'CONFIRM_BLOCKS'
+
+  ## OPTIONAL
+  BLOCKS_TRANSACTIONS_REALTIME_TESTING_LIMIT: 3
+  BLOCKS_TRANSACTIONS_HISTORY_TESTING_LIMIT: 3
+
+  RECEIPTS_REALTIME_TESTING_LIMIT: 3
+  RECEIPTS_HISTORY_TESTING_LIMIT: 3
+
+  TRACES_REALTIME_TESTING_LIMIT: 3
+  TRACES_HISTORY_TESTING_LIMIT: 3
+
+  CONFIRM_BLOCKS_COMPLETE_FULL_REFRESH: False
+  CONFIRM_BLOCKS_REALTIME_TESTING_LIMIT: 3
+  CONFIRM_BLOCKS_HISTORY_TESTING_LIMIT: 3
+
+  ### PRICES ###
+  ## REQUIRED
+  PRICES_NATIVE_SYMBOLS: 'ETH' 
+  PRICES_NATIVE_BLOCKCHAINS: 'ethereum'
+  PRICES_PROVIDER_PLATFORMS: 'Blast' 
+
+  ### LABELS
+
+  ### STATS
+  ## REQUIRED
+  STATS_TOKEN_ADDRESS: '0x4300000000000000000000000000000000000004' 
+
+  ### CORE_PACKAGE VARIABLES END ###
+
+  ### DECODER VARIABLES BEGIN ###
+
+  ### DECODED_LOGS ###
+  ## REQUIRED
+  DECODED_LOGS_REALTIME_EXTERNAL_TABLE: 'DECODED_LOGS'
+  DECODED_LOGS_REALTIME_SQL_LIMIT: 2000000
+  DECODED_LOGS_REALTIME_PRODUCER_BATCH_SIZE: 400000
+  DECODED_LOGS_REALTIME_WORKER_BATCH_SIZE: 200000
+
+  DECODED_LOGS_HISTORY_EXTERNAL_TABLE: 'DECODED_LOGS'
+  DECODED_LOGS_HISTORY_SQL_LIMIT: 7500000
+  DECODED_LOGS_HISTORY_PRODUCER_BATCH_SIZE: 20000000
+  DECODED_LOGS_HISTORY_WORKER_BATCH_SIZE: 10000000
+
+  ## OPTIONAL
+  DECODED_LOGS_REALTIME_TESTING_LIMIT: 3
+  DECODED_LOGS_HISTORY_TESTING_LIMIT: 3
+
+  ### DECODER VARIABLES END ###
+
+  #### FSC_EVM END ####

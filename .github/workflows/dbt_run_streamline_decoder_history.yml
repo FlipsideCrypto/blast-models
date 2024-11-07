@@ -44,4 +44,4 @@ jobs:
           dbt deps
       - name: Run DBT Jobs
         run: |
-          dbt run --threads 8 --vars '{"STREAMLINE_INVOKE_STREAMS":True,"WAIT":120}' -m "blast_models,tag:streamline_decoded_logs_complete" "blast_models,tag:streamline_decoded_logs_history"
+          dbt run --threads 8 --vars '{"STREAMLINE_INVOKE_STREAMS":True,"WAIT":120}' -m "fsc_evm,tag:streamline_decoded_logs_complete" "blast_models,tag:streamline_decoded_logs_history"
