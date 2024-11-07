@@ -58,8 +58,11 @@ models:
     +enabled: false
     core_package:
       bronze:
-        bronze__blocks:
-          +enabled: True
+        +enabled: True
+        bronze__receipts_by_hash_fr:
+          +enabled: false
+        bronze__receipts_by_hash:
+          +enabled: false
           
 # In this example config, we tell dbt to build all models in the example/ directory
 # as tables. These settings can be overridden in the individual model files
