@@ -16,3 +16,6 @@ logs/
 .vscode/
 .env
 dbt-env/
+
+package-lock.yml
+.user.yml
