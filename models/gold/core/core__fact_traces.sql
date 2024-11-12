@@ -5,28 +5,44 @@
 ) }}
 
 SELECT
-    tx_hash,
     block_number,
     block_timestamp,
+    tx_hash,
+    tx_position, --new column
+    trace_index,
     from_address,
     to_address,
-    eth_value AS VALUE,
-    eth_value_precise_raw AS value_precise_raw,
-    eth_value_precise AS value_precise,
-    gas,
-    gas_used,
     input,
     output,
     TYPE,
-    identifier,
-    DATA,
-    tx_status,
+    trace_address, --new column
     sub_traces,
-    trace_status,
+    DATA,
+    VALUE,
+    value_precise_raw,
+    value_precise,
+    value_hex, --new column
+    gas,
+    gas_used,
+    origin_from_address, --new column
+    origin_to_address, --new column
+    origin_function_signature, --new column
+    trace_succeeded, --new column
     error_reason,
-    trace_index,
-    traces_id AS fact_traces_id,
-    inserted_timestamp,
-    modified_timestamp
+    revert_reason, --new column
+    tx_succeeded, --new column
+    fact_traces_id,
+    COALESCE(
+        inserted_timestamp,
+        '2000-01-01'
+    ) AS inserted_timestamp,
+    COALESCE(
+        modified_timestamp,
+        '2000-01-01'
+    ) AS modified_timestamp,
+    identifier, --deprecate
+    tx_status, --deprecate
+    trace_status --deprecate    
 FROM
-    {{ ref('silver__traces') }}
+    {{ ref('silver__fact_traces2') }}
+--ideal state = source from silver.traces2 and materialize this model as a table (core.fact_traces2)

@@ -31,10 +31,14 @@ WITH logs_pull AS (
         utils.udf_hex_to_int(
             segmented_data [1] :: STRING
         ) :: INT AS product_id,
-        _log_id,
-        _inserted_timestamp
+        CONCAT(
+            tx_hash :: STRING,
+            '-',
+            event_index :: STRING
+        ) AS _log_id,
+        modified_timestamp AS _inserted_timestamp
     FROM
-        {{ ref('silver__logs') }}
+        {{ ref('core__fact_event_logs') }}
     WHERE
         topics [0] :: STRING = '0xfe53084a731040f869d38b1dcd00fbbdbc14e10d7d739160559d77f5bc80cf05'
         AND contract_address = '0xc748532c202828969b2ee68e0f8487e69cc1d800' --clearing house

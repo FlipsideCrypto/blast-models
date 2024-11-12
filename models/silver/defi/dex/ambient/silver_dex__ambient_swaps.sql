@@ -68,14 +68,18 @@ WITH swaps_base AS (
             WHEN quote_qty > 0 THEN base_token
             ELSE NULL
         END AS token_out,
-        _log_id,
-        _inserted_timestamp
+        CONCAT(
+            tx_hash :: STRING,
+            '-',
+            event_index :: STRING
+        ) AS _log_id,
+        modified_timestamp AS _inserted_timestamp
     FROM
-        {{ ref('silver__logs') }}
+        {{ ref('core__fact_event_logs') }}
     WHERE
         contract_address = '0xaaaaaaaaffe404ee9433eef0094b6382d81fb958' --CrocSwapDex
         AND topics [0] :: STRING = '0x5d7a6c346454f5c536b7f52655e780f6db27b15b489f80f2dbb288c9e4f366bd'
-        AND tx_status = 'SUCCESS'
+        AND tx_succeeded
 
 {% if is_incremental() %}
 AND _inserted_timestamp >= (

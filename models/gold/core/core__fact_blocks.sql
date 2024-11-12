@@ -6,22 +6,36 @@
 
 SELECT
     A.block_number AS block_number,
+    HASH AS block_hash, --new column
     block_timestamp,
     'mainnet' AS network,
-    'blast' AS blockchain,
     d.tx_count,
+    SIZE,
+    miner, --new column
+    extra_data,
+    parent_hash,
+    gas_used,
+    gas_limit,
     difficulty,
     total_difficulty,
-    extra_data,
-    gas_limit,
-    gas_used,
-    HASH,
-    parent_hash,
-    receipts_root,
     sha3_uncles,
-    SIZE,
     uncles AS uncle_blocks,
-    withdrawals_root,
+    nonce, --new column
+    receipts_root,
+    state_root, --new column
+    transactions_root, --new column
+    logs_bloom, --new column
+    blocks_id AS fact_blocks_id,
+    GREATEST(
+        A.inserted_timestamp,
+        d.inserted_timestamp
+    ) AS inserted_timestamp,
+    GREATEST(
+        A.modified_timestamp,
+        d.modified_timestamp
+    ) AS modified_timestamp,
+    'blast' AS blockchain, --deprecate
+    HASH, --deprecate
     OBJECT_CONSTRUCT(
         'baseFeePerGas',
         base_fee_per_gas,
@@ -61,16 +75,8 @@ SELECT
         transactions_root,
         'uncles',
         uncles
-    ) AS block_header_json,
-    blocks_id AS fact_blocks_id,
-    GREATEST(
-        A.inserted_timestamp,
-        d.inserted_timestamp
-    ) AS inserted_timestamp,
-    GREATEST(
-        A.modified_timestamp,
-        d.modified_timestamp
-    ) AS modified_timestamp
+    ) AS block_header_json, --deprecate
+    withdrawals_root --deprecate
 FROM
     {{ ref('silver__blocks') }} A
     LEFT JOIN {{ ref('silver__tx_count') }}
