@@ -102,7 +102,7 @@
           {% set decode_query %}
             SELECT streamline.udf_bulk_decode_logs(
               object_construct(
-                'sql_source', "{{view_name}}",
+                'sql_source', '{{view_name}}',
                 'external_table', 'DECODED_LOGS',
                 'sql_limit', {{ params.sql_limit }},
                 'producer_batch_size', {{ params.producer_batch_size }},
