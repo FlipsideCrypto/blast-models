@@ -28,14 +28,14 @@ from invalid_product_ids
 
 with recent_records as (
     select distinct(product_id) from  {{model}}
-    where block_timestamp >= SYSDATE() - INTERVAL '7 days'
+    where block_timestamp >= SYSDATE() - INTERVAL '30 days'
 ),
 
 invalid_product_ids as (
     select *
     from {{ ref('silver__blitz_dim_products') }}
     where product_id not in (select product_id from recent_records)
-    AND block_timestamp < sysdate() - INTERVAL '7 days'
+    AND block_timestamp < sysdate() - INTERVAL '30 days'
     {% if filter %}
         AND {{ filter }}
     {% endif %}
