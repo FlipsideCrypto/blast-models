@@ -16,7 +16,7 @@ WITH asset_details AS (
         underlying_asset_address,
         underlying_name,
         underlying_symbol,
-        underlying_decimals,
+        underlying_decimals
     FROM
         {{ ref('silver__orbit_asset_details') }}
 ),

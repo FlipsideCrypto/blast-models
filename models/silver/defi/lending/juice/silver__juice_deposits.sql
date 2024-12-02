@@ -7,19 +7,25 @@
 ) }}
 
 WITH asset_details AS (
-    SELECT 
-        token_address,
-        token_name,
-        token_symbol,
-        token_decimals,
+
+  SELECT
         underlying_asset_address,
         underlying_name,
+        underlying_decimals,
         underlying_symbol,
-        underlying_decimals
-    FROM 
-        {{ ref('silver__orbit_asset_details') }}
+        pool_address,
+        token_address,
+        token_name,
+        token_decimals,
+        token_symbol,
+        debt_address,
+        debt_name,
+        debt_decimals,
+        debt_symbol
+  FROM
+    {{ ref('silver__juice_asset_details') }}
 ),
-orbit_deposits AS (
+juice_deposits AS (
   SELECT
     block_number,
     block_timestamp,
@@ -62,7 +68,7 @@ AND _inserted_timestamp >= (
 AND _inserted_timestamp >= SYSDATE() - INTERVAL '7 day'
 {% endif %}
 ),
-orbit_combine AS (
+juice_combine AS (
   SELECT
     b.block_number,
     b.block_timestamp,
@@ -85,7 +91,7 @@ orbit_combine AS (
     b._log_id,
     b._inserted_timestamp
   FROM
-    orbit_deposits b
+    juice_deposits b
     LEFT JOIN asset_details C
     ON b.token_address = C.token_address
 )
@@ -117,6 +123,6 @@ SELECT
   _inserted_timestamp,
   _log_id
 FROM
-  orbit_combine qualify(ROW_NUMBER() over(PARTITION BY _log_id
+  juice_combine qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY
   _inserted_timestamp DESC)) = 1
