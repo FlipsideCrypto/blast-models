@@ -1,0 +1,26 @@
+version: 2
+models:
+  - name: blitz__ez_money_markets
+    description: '{{ doc("blitz_money_markets") }}'
+
+    columns:
+      - name: HOUR
+        description: '{{ doc("blitz_hour") }}'
+      - name: TICKER_ID
+        description: '{{ doc("blitz_ticker_id") }}'
+      - name: SYMBOL
+        description: '{{ doc("blitz_symbol") }}'
+      - name: PRODUCT_ID
+        description: '{{ doc("blitz_product_id") }}'
+      - name: DEPOSIT_APR
+        description: '{{ doc("blitz_deposit_apr") }}'
+      - name: BORROW_APR
+        description: '{{ doc("blitz_borrow_apr") }}'
+      - name: TVL
+        description: '{{ doc("blitz_tvl") }}'
+      - name: INSERTED_TIMESTAMP
+        description: '{{ doc("inserted_timestamp") }}'
+      - name: MODIFIED_TIMESTAMP
+        description: '{{ doc("modified_timestamp") }}'
+      - name: VERTEX_MONEY_MARKETS_ID
+        description: '{{ doc("pk") }}'
