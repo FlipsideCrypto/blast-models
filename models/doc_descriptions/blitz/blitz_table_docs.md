@@ -59,3 +59,28 @@ All staking actions taken with the VRTX staking contract.
 All edge trades paired with the associated trader/subaccount.
 
 {% enddocs %}
+
+{% docs blitz_money_markets %}
+
+Blitz integrates a decentralized money market directly into its DEX, enabling borrowing and lending of crypto assets using overcollateralized lending rules. Interest rates are dynamically adjusted based on supply and demand, incentivizing liquidity provision and balancing borrowing costs. The money market operates on-chain (e.g., on Arbitrum) and is managed through Vertex’s risk engine and clearinghouse, offering users automated borrowing via portfolio margin and passive yield opportunities on idle assets. This table tracks the money market products available on Vertex on an hourly basis.
+
+
+{% enddocs %}
+
+{% docs blitz_deposit_apr %}
+
+The recorded deposit APR for the money market product in that hour.
+
+{% enddocs %}
+
+{% docs blitz_borrow_apr %}
+
+The recorded borrow APR for the money market product in that hour.
+
+{% enddocs %}
+
+{% docs blitz_tvl %}
+
+The sum total value locked for the money market product in that hour.
+
+{% enddocs %}
