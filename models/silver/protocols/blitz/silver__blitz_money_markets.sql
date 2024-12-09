@@ -21,7 +21,7 @@ SELECT
     DATE_TRUNC('hour', SYSDATE()) AS HOUR,
     CONCAT(
         f.value:symbol::string,
-            '_USDC'
+            '_USDB'
     ) AS ticker_id,
     f.value:symbol::string AS symbol,
     f.value:product_id::string AS product_id,
