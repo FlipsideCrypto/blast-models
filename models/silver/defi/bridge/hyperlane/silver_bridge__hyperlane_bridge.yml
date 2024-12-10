@@ -1,6 +1,6 @@
 version: 2
 models:
-  - name: silver_bridge__synapse_tokenredeem
+  - name: silver_bridge__hyperlane_bridge
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
@@ -69,4 +69,4 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_match_regex:
-              regex: 0[xX][0-9a-fA-F]+       
+              regex: 0[xX][0-9a-fA-F]+
