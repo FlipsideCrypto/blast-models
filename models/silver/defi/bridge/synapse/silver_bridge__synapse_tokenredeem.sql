@@ -40,9 +40,15 @@ WITH base_evt AS (
         AND topic_0 IN (
             '0x91f25e9be0134ec851830e0e76dc71e06f9dade75a9b84e9524071dbbc319425',
             -- TokenRedeemAndSwap
+            '0x79c15604b92ef54d3f61f0c40caab8857927ca3d5092367163b4562c1699eb5f',
+            -- TokenDepositAndSwap
             '0x9a7024cde1920aa50cdde09ca396229e8c4d530d5cfdc6233590def70a94408c',
             -- TokenRedeemAndRemove
-            '0xdc5bad4651c5fbe9977a696aadc65996c468cde1448dd468ec0d83bf61c4b57c' -- TokenRedeem
+            '0xdc5bad4651c5fbe9977a696aadc65996c468cde1448dd468ec0d83bf61c4b57c',
+            -- TokenRedeem
+            '0xda5273705dbef4bf1b902a131c2eac086b7e1476a8ab0cb4da08af1fe1bd8e3b',
+            -- TokenDeposit
+            '0x8e57e8c5fea426159af69d47eda6c5052c7605c9f70967cf749d4aa55b70b499' -- TokenRedeemV2 (terra specific)
         )
         AND tx_succeeded
 
@@ -66,32 +72,21 @@ redeem_swap AS (
         tx_hash,
         contract_address,
         event_index,
-        'TokenRedeemAndSwap' AS event_name,
-        topic_1 AS to_address,
+        CASE
+            WHEN topic_0 = '0x91f25e9be0134ec851830e0e76dc71e06f9dade75a9b84e9524071dbbc319425' THEN 'TokenRedeemAndSwap'
+            WHEN topic_0 = '0x79c15604b92ef54d3f61f0c40caab8857927ca3d5092367163b4562c1699eb5f' THEN 'TokenDepositAndSwap'
+        END AS event_name,
+        CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS to_address,
         segmented_data,
-        utils.udf_hex_to_int(
-            segmented_data [0] :: STRING
-        ) AS chainId,
-        CONCAT('0x', SUBSTR(segmented_data [1], 25, 40)) AS token,
-        TRY_TO_NUMBER(
-            utils.udf_hex_to_int(
-                segmented_data [2] :: STRING
-            )
-        ) AS amount,
-        utils.udf_hex_to_int(
-            segmented_data [3]
-        ) AS tokenIndexFrom,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [0] :: STRING)) AS chainId,
+        CONCAT('0x', SUBSTR(segmented_data [1] :: STRING, 25, 40)) AS token,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [2] :: STRING)) AS amount,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [3] :: STRING)) AS tokenIndexFrom,
         -- source chain token index
-        utils.udf_hex_to_int(
-            segmented_data [4]
-        ) AS tokenIndexTo,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [4] :: STRING)) AS tokenIndexTo,
         -- dst chain token index
-        utils.udf_hex_to_int(
-            segmented_data [5]
-        ) AS minDy,
-        utils.udf_hex_to_int(
-            segmented_data [6]
-        ) AS deadline,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [5] :: STRING)) AS minDy,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [6] :: STRING)) AS deadline,
         -- timestamp
         tx_succeeded,
         _log_id,
@@ -99,7 +94,11 @@ redeem_swap AS (
     FROM
         base_evt
     WHERE
-        topic_0 = '0x91f25e9be0134ec851830e0e76dc71e06f9dade75a9b84e9524071dbbc319425' -- TokenRedeemAndSwap
+        topic_0 IN (
+            '0x91f25e9be0134ec851830e0e76dc71e06f9dade75a9b84e9524071dbbc319425',
+            -- TokenRedeemAndSwap
+            '0x79c15604b92ef54d3f61f0c40caab8857927ca3d5092367163b4562c1699eb5f' -- TokenDepositAndSwap
+        )
 ),
 redeem_remove AS (
     SELECT
@@ -112,27 +111,15 @@ redeem_remove AS (
         contract_address,
         event_index,
         'TokenRedeemAndRemove' AS event_name,
-        topic_1 AS to_address,
+        CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS to_address,
         segmented_data,
-        utils.udf_hex_to_int(
-            segmented_data [0] :: STRING
-        ) AS chainId,
-        CONCAT('0x', SUBSTR(segmented_data [1], 25, 40)) AS token,
-        TRY_TO_NUMBER(
-            utils.udf_hex_to_int(
-                segmented_data [2] :: STRING
-            )
-        ) AS amount,
-        utils.udf_hex_to_int(
-            segmented_data [3]
-        ) AS swapTokenIndex,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [0] :: STRING)) AS chainId,
+        CONCAT('0x', SUBSTR(segmented_data [1] :: STRING, 25, 40)) AS token,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [2] :: STRING)) AS amount,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [3] :: STRING)) AS swapTokenIndex,
         -- dst chain token index
-        utils.udf_hex_to_int(
-            segmented_data [4]
-        ) AS swapMinAmount,
-        utils.udf_hex_to_int(
-            segmented_data [5]
-        ) AS swapDeadline,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [4] :: STRING)) AS swapMinAmount,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [5] :: STRING)) AS swapDeadline,
         -- timestamp
         tx_succeeded,
         _log_id,
@@ -152,109 +139,112 @@ redeem_only AS (
         tx_hash,
         contract_address,
         event_index,
-        'TokenRedeem' AS event_name,
-        topic_1 AS to_address,
+        CASE
+            WHEN topic_0 = '0xdc5bad4651c5fbe9977a696aadc65996c468cde1448dd468ec0d83bf61c4b57c' THEN 'TokenRedeem'
+            WHEN topic_0 = '0xda5273705dbef4bf1b902a131c2eac086b7e1476a8ab0cb4da08af1fe1bd8e3b' THEN 'TokenDeposit'
+            WHEN topic_0 = '0x8e57e8c5fea426159af69d47eda6c5052c7605c9f70967cf749d4aa55b70b499' THEN 'TokenRedeemV2'
+        END AS event_name,
+        CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS to_address,
         segmented_data,
-        utils.udf_hex_to_int(
-            segmented_data [0] :: STRING
-        ) AS chainId,
-        CONCAT('0x', SUBSTR(segmented_data [1], 25, 40)) AS token,
-        TRY_TO_NUMBER(
-            utils.udf_hex_to_int(
-                segmented_data [2] :: STRING
-            )
-        ) AS amount,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [0] :: STRING)) AS chainId,
+        CONCAT('0x', SUBSTR(segmented_data [1] :: STRING, 25, 40)) AS token,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [2] :: STRING)) AS amount,
         tx_succeeded,
         _log_id,
         modified_timestamp
     FROM
         base_evt
     WHERE
-        topic_0 = '0xdc5bad4651c5fbe9977a696aadc65996c468cde1448dd468ec0d83bf61c4b57c' -- TokenRedeem
+        topic_0 IN (
+            '0xdc5bad4651c5fbe9977a696aadc65996c468cde1448dd468ec0d83bf61c4b57c',
+            -- TokenRedeem
+            '0xda5273705dbef4bf1b902a131c2eac086b7e1476a8ab0cb4da08af1fe1bd8e3b',
+            -- TokenDeposit
+            '0x8e57e8c5fea426159af69d47eda6c5052c7605c9f70967cf749d4aa55b70b499' -- TokenRedeemV2 (terra specific)
+        )
 ),
 all_evts AS (
     SELECT
         block_number,
         block_timestamp,
-        origin_function_signature,
         origin_from_address,
         origin_to_address,
+        origin_function_signature,
         tx_hash,
+        contract_address,
         event_index,
         event_name,
-        event_removed,
-        tx_status,
-        contract_address AS bridge_address,
+        to_address,
+        segmented_data,
+        chainId,
+        token,
         amount,
-        origin_from_address AS sender,
-        to_address AS receiver,
-        receiver AS destination_chain_receiver,
-        chainId AS destination_chain_id,
-        token AS token_address,
+        tx_succeeded,
+        _log_id,
+        modified_timestamp
     FROM
         redeem_swap
     UNION ALL
     SELECT
         block_number,
         block_timestamp,
-        origin_function_signature,
         origin_from_address,
         origin_to_address,
+        origin_function_signature,
         tx_hash,
+        contract_address,
         event_index,
         event_name,
-        event_removed,
-        tx_status,
-        contract_address AS bridge_address,
+        to_address,
+        segmented_data,
+        chainId,
+        token,
         amount,
-        origin_from_address AS sender,
-        to_address AS receiver,
-        receiver AS destination_chain_receiver,
-        chainId AS destination_chain_id,
-        token AS token_address,
+        tx_succeeded,
+        _log_id,
+        modified_timestamp
     FROM
         redeem_remove
     UNION ALL
     SELECT
         block_number,
         block_timestamp,
-        origin_function_signature,
         origin_from_address,
         origin_to_address,
+        origin_function_signature,
         tx_hash,
+        contract_address,
         event_index,
         event_name,
-        event_removed,
-        tx_status,
-        contract_address AS bridge_address,
+        to_address,
+        segmented_data,
+        chainId,
+        token,
         amount,
-        origin_from_address AS sender,
-        to_address AS receiver,
-        receiver AS destination_chain_receiver,
-        chainId AS destination_chain_id,
-        token AS token_address,
+        tx_succeeded,
+        _log_id,
+        modified_timestamp
     FROM
         redeem_only
 )
 SELECT
     block_number,
     block_timestamp,
-    origin_function_signature,
     origin_from_address,
     origin_to_address,
+    origin_function_signature,
     tx_hash,
     event_index,
     event_name,
-    event_removed,
-    tx_status,
-    bridge_address,
-    'synapse' AS platform,
+    contract_address AS bridge_address,
+    origin_from_address AS sender,
+    to_address AS receiver,
+    receiver AS destination_chain_receiver,
+    chainId AS destination_chain_id,
+    token AS token_address,
     amount,
-    sender,
-    receiver,
-    destination_chain_receiver,
-    destination_chain_id,
-    token_address,
+    tx_succeeded,
+    'synapse' AS platform,
     _log_id,
     modified_timestamp
 FROM
