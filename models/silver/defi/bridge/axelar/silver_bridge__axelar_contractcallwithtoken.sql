@@ -20,7 +20,7 @@ WITH base_evt AS (
         event_index,
         topics [0] :: STRING AS topic_0,
         event_name,
-        decoded_flat AS decoded_log,
+        decoded_log,
         TRY_TO_NUMBER(
             decoded_log :"amount" :: STRING
         ) AS amount,
@@ -36,7 +36,7 @@ WITH base_evt AS (
         decoded_log,
         event_removed,
         CASE
-            WHEN tx_status = 'success' THEN TRUE
+            WHEN tx_status = 'SUCCESS' THEN TRUE
             ELSE FALSE
         END AS tx_succeeded,
         CONCAT(
@@ -75,7 +75,7 @@ native_gas_paid AS (
         event_index,
         topics [0] :: STRING AS topic_0,
         event_name,
-        decoded_flat AS decoded_log,
+        decoded_log,
         TRY_TO_NUMBER(
             decoded_log :"amount" :: STRING
         ) AS amount,
@@ -93,7 +93,7 @@ native_gas_paid AS (
         decoded_log,
         event_removed,
         CASE
-            WHEN tx_status = 'success' THEN TRUE
+            WHEN tx_status = 'SUCCESS' THEN TRUE
             ELSE FALSE
         END AS tx_succeeded,
         CONCAT(

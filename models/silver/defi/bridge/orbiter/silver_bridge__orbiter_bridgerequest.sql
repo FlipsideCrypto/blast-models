@@ -22,12 +22,12 @@ WITH bridge_router AS (
         origin_to_address AS to_address,
         origin_from_address AS from_address,
         origin_from_address AS depositor,
-        TRY_TO_NUMBER(RIGHT(utils.udf_hex_to_int(DATA :: STRING), 4)) AS destinationChainId,
-        TRY_TO_NUMBER(utils.udf_hex_to_int(DATA :: STRING) * pow(10, -18)) AS amount,
+        RIGHT(utils.udf_hex_to_int(DATA :: STRING), 4) AS destinationChainId,
+        TRY_TO_NUMBER(utils.udf_hex_to_int(DATA :: STRING)) AS amount,
         origin_from_address AS receipient,
         CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS bridge_address,
         CASE
-            WHEN tx_status = 'success' THEN TRUE
+            WHEN tx_status = 'SUCCESS' THEN TRUE
             ELSE FALSE
         END AS tx_succeeded,
         CONCAT(
@@ -69,13 +69,11 @@ bridge_native AS (
         et.to_address,
         et.from_address,
         et.from_address AS depositor,
-        TRY_TO_NUMBER(
-            RIGHT(
-                amount_precise_raw,
-                4
-            )
+        RIGHT(
+            amount_precise_raw,
+            4
         ) AS destinationChainId,
-        amount,
+        amount_precise_raw,
         et.from_address AS receipient,
         et.to_address AS bridge_address,
         native_transfers_id,
@@ -112,14 +110,13 @@ bridge_combined AS (
         origin_to_address,
         origin_function_signature,
         tx_hash,
-        contract_address,
         event_index,
         event_name,
         to_address,
         from_address,
         depositor,
         destinationChainId AS orbiter_chain_id,
-        amount,
+        amount AS amount_unadj,
         receipient,
         bridge_address,
         tx_succeeded,
@@ -135,14 +132,13 @@ bridge_combined AS (
         origin_to_address,
         origin_function_signature,
         tx_hash,
-        contract_address,
         NULL AS event_index,
         NULL AS event_name,
         to_address,
         from_address,
         depositor,
         destinationChainId AS orbiter_chain_id,
-        amount,
+        amount_precise_raw AS amount_unadj,
         receipient,
         bridge_address,
         TRUE AS tx_succeeded,
@@ -158,17 +154,16 @@ SELECT
     origin_to_address,
     origin_function_signature,
     tx_hash,
-    contract_address,
     event_index,
     event_name,
     to_address,
     from_address,
-    depositor,
+    depositor AS sender,
     orbiter_chain_id,
     s.chainid AS destination_chain_id,
     s.name AS destination_chain,
-    amount,
-    receipient,
+    amount_unadj,
+    receipient AS receiver,
     receipient AS destination_chain_receiver,
     bridge_address,
     'orbiter finance' AS platform,
@@ -179,5 +174,6 @@ SELECT
     modified_timestamp
 FROM
     bridge_combined b
-LEFT JOIN {{ ref('silver_bridge__orbiter_bridge_seed') }} s
+    LEFT JOIN {{ ref('silver_bridge__orbiter_bridge_seed') }}
+    s
     ON b.orbiter_chain_id :: STRING = s.identificationcode :: STRING

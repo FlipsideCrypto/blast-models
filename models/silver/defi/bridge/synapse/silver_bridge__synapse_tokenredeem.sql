@@ -17,6 +17,7 @@ WITH base_evt AS (
         tx_hash,
         contract_address,
         event_index,
+        topics,
         topics [0] :: STRING AS topic_0,
         topics [1] :: STRING AS topic_1,
         topics [2] :: STRING AS topic_2,
@@ -24,7 +25,7 @@ WITH base_evt AS (
         DATA,
         regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
         CASE
-            WHEN tx_status = 'success' THEN TRUE
+            WHEN tx_status = 'SUCCESS' THEN TRUE
             ELSE FALSE
         END AS tx_succeeded,
         CONCAT(
@@ -76,7 +77,7 @@ redeem_swap AS (
             WHEN topic_0 = '0x91f25e9be0134ec851830e0e76dc71e06f9dade75a9b84e9524071dbbc319425' THEN 'TokenRedeemAndSwap'
             WHEN topic_0 = '0x79c15604b92ef54d3f61f0c40caab8857927ca3d5092367163b4562c1699eb5f' THEN 'TokenDepositAndSwap'
         END AS event_name,
-        CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS to_address,
+        CONCAT('0x', SUBSTR(topic_1, 27, 40)) AS to_address,
         segmented_data,
         TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [0] :: STRING)) AS chainId,
         CONCAT('0x', SUBSTR(segmented_data [1] :: STRING, 25, 40)) AS token,
@@ -111,7 +112,7 @@ redeem_remove AS (
         contract_address,
         event_index,
         'TokenRedeemAndRemove' AS event_name,
-        CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS to_address,
+        CONCAT('0x', SUBSTR(topic_1, 27, 40)) AS to_address,
         segmented_data,
         TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [0] :: STRING)) AS chainId,
         CONCAT('0x', SUBSTR(segmented_data [1] :: STRING, 25, 40)) AS token,
@@ -144,7 +145,7 @@ redeem_only AS (
             WHEN topic_0 = '0xda5273705dbef4bf1b902a131c2eac086b7e1476a8ab0cb4da08af1fe1bd8e3b' THEN 'TokenDeposit'
             WHEN topic_0 = '0x8e57e8c5fea426159af69d47eda6c5052c7605c9f70967cf749d4aa55b70b499' THEN 'TokenRedeemV2'
         END AS event_name,
-        CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS to_address,
+        CONCAT('0x', SUBSTR(topic_1, 27, 40)) AS to_address,
         segmented_data,
         TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [0] :: STRING)) AS chainId,
         CONCAT('0x', SUBSTR(segmented_data [1] :: STRING, 25, 40)) AS token,
