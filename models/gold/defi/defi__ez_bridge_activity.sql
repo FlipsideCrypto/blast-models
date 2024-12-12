@@ -5,7 +5,7 @@
     meta ={ 
         'database_tags':{
             'table':{
-                'PROTOCOL': 'AXELAR, HYPERLANE, ORBITER, SYMBIOSIS, SYNAPSE',
+                'PROTOCOL': 'ACROSS, AXELAR, HYPERLANE, LAYERZERO, ORBITER, SYMBIOSIS, SYNAPSE',
                 'PURPOSE': 'BRIDGE'
         } } }
 ) }}
