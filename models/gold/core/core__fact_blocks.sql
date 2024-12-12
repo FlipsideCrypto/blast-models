@@ -25,6 +25,8 @@ SELECT
     state_root, --new column
     transactions_root, --new column
     logs_bloom, --new column
+    base_fee_per_gas, --new column
+    withdrawals_root,
     blocks_id AS fact_blocks_id,
     GREATEST(
         A.inserted_timestamp,
@@ -75,8 +77,7 @@ SELECT
         transactions_root,
         'uncles',
         uncles
-    ) AS block_header_json, --deprecate
-    withdrawals_root --deprecate
+    ) AS block_header_json --deprecate
 FROM
     {{ ref('silver__blocks') }} A
     LEFT JOIN {{ ref('silver__tx_count') }}
