@@ -24,7 +24,7 @@ WITH bridge_router AS (
         origin_from_address AS depositor,
         RIGHT(utils.udf_hex_to_int(DATA :: STRING), 4) AS destinationChainId,
         TRY_TO_NUMBER(utils.udf_hex_to_int(DATA :: STRING)) AS amount,
-        origin_from_address AS receipient,
+        origin_from_address AS recipient,
         CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS bridge_address,
         CASE
             WHEN tx_status = 'SUCCESS' THEN TRUE
@@ -74,7 +74,7 @@ bridge_native AS (
             4
         ) AS destinationChainId,
         amount_precise_raw,
-        et.from_address AS receipient,
+        et.from_address AS recipient,
         et.to_address AS bridge_address,
         native_transfers_id,
         et.modified_timestamp
@@ -117,7 +117,7 @@ bridge_combined AS (
         depositor,
         destinationChainId AS orbiter_chain_id,
         amount AS amount_unadj,
-        receipient,
+        recipient,
         bridge_address,
         tx_succeeded,
         _log_id AS _id,
@@ -139,7 +139,7 @@ bridge_combined AS (
         depositor,
         destinationChainId AS orbiter_chain_id,
         amount_precise_raw AS amount_unadj,
-        receipient,
+        recipient,
         bridge_address,
         TRUE AS tx_succeeded,
         native_transfers_id AS _id,
@@ -163,10 +163,10 @@ SELECT
     s.chainid AS destination_chain_id,
     s.name AS destination_chain,
     amount_unadj,
-    receipient AS receiver,
-    receipient AS destination_chain_receiver,
+    recipient AS receiver,
+    recipient AS destination_chain_receiver,
     bridge_address,
-    'orbiter finance' AS platform,
+    'orbiter' AS platform,
     '0x4300000000000000000000000000000000000004' AS token_address,
     --weth contract address
     tx_succeeded,

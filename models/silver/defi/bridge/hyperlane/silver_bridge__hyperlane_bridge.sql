@@ -18,10 +18,10 @@ WITH dispatch AS (
         event_index,
         contract_address,
         event_removed,
-        CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS sender,
+        CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS src_bridge_token,
         -- src bridge token address, not user address
         TRY_TO_NUMBER(utils.udf_hex_to_int(topics [2] :: STRING)) AS destination,
-        CONCAT('0x', SUBSTR(topics [3] :: STRING, 27, 40)) AS recipient,
+        CONCAT('0x', SUBSTR(topics [3] :: STRING, 27, 40)) AS dst_bridge_token,
         -- dst bridge token address, not recipient address
         DATA,
         CASE
@@ -187,22 +187,14 @@ SELECT
     'Dispatch' AS event_name,
     event_removed,
     tx_succeeded,
-    -- from dispatch
-    sender,
-    -- src bridge token
     recipient AS destination_chain_receiver,
-    -- dst bridge token
     destination AS destination_chain_id,
-    -- from dispatch_id
-    messageId AS message_id,
-    -- from gas_payment
+    messageId :: STRING AS message_id,
     gasAmount AS gas_amount,
     payment,
-    -- from sent_transfer_remote
+    origin_from_address AS sender,
     recipient AS receiver,
-    -- actual receiver address
     amount,
-    -- from token_transfer
     token_address,
     'hyperlane' AS platform,
     _log_id,

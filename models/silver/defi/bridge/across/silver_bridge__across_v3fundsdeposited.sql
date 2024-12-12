@@ -20,6 +20,7 @@ WITH base_evt AS (
         topics,
         DATA,
         event_index,
+        event_name,
         utils.udf_hex_to_int(
             topics [1] :: STRING
         ) AS destinationChainId,
