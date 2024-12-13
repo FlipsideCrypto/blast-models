@@ -40,9 +40,9 @@ WITH base_evt AS (
             ELSE FALSE
         END AS tx_succeeded,
         CONCAT(
-            tx_hash,
+            tx_hash :: STRING,
             '-',
-            event_index
+            event_index :: STRING
         ) AS _log_id,
         modified_timestamp
     FROM
@@ -97,9 +97,9 @@ native_gas_paid AS (
             ELSE FALSE
         END AS tx_succeeded,
         CONCAT(
-            tx_hash,
+            tx_hash :: STRING,
             '-',
-            event_index
+            event_index :: STRING
         ) AS _log_id,
         modified_timestamp
     FROM
@@ -137,13 +137,13 @@ transfers AS (
         )
 
 {% if is_incremental() %}
-AND _inserted_timestamp >= (
+AND modified_timestamp >= (
     SELECT
-        MAX(_inserted_timestamp) - INTERVAL '12 hours'
+        MAX(modified_timestamp) - INTERVAL '12 hours'
     FROM
         {{ this }}
 )
-AND _inserted_timestamp >= SYSDATE() - INTERVAL '7 day'
+AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
 {% endif %}
 ),
 FINAL AS (

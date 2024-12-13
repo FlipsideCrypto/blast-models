@@ -8,8 +8,8 @@
     tags = ['curated','reorg','heal']
 ) }}
 
-WITH 
-across_v3 AS (
+WITH across_v3 AS (
+
     SELECT
         block_number,
         block_timestamp,
@@ -46,7 +46,6 @@ WHERE
 {% endif %}
 ),
 axelar AS (
-
     SELECT
         block_number,
         block_timestamp,
@@ -135,7 +134,7 @@ layerzero_v2 AS (
         receiver,
         destination_chain_receiver,
         destination_chain_id :: STRING AS destination_chain_id,
-        NULL AS destination_chain,
+        destination_chain,
         token_address,
         NULL AS token_symbol,
         amount AS amount_unadj,
@@ -316,14 +315,16 @@ complete_bridge_activity AS (
         destination_chain_receiver,
         CASE
             WHEN platform IN (
-                'orbiter'
+                'orbiter',
+                'layerzero-v2'
             ) THEN destination_chain_id :: STRING
             WHEN d.chain_id IS NULL THEN destination_chain_id :: STRING
             ELSE d.chain_id :: STRING
         END AS destination_chain_id,
         CASE
             WHEN platform IN (
-                'orbiter'
+                'orbiter',
+                'layerzero-v2'
             ) THEN LOWER(destination_chain)
             WHEN d.chain IS NULL THEN LOWER(destination_chain)
             ELSE LOWER(

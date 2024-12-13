@@ -156,7 +156,10 @@ SELECT
     from_address AS receiver,
     from_address AS destination_chain_receiver,
     amountSentLD AS amount,
-    dstEid AS destination_chain_id,
+    b.dstEid AS destination_chain_id,
+    LOWER(
+        s.chain :: STRING
+    ) AS destination_chain,
     COALESCE(
         underlying_address,
         oft_address
@@ -165,4 +168,7 @@ SELECT
     _log_id,
     modified_timestamp
 FROM
-    oft_sent {# inner join chain_id using(dstEid) #}
+    oft_sent b
+    INNER JOIN {{ ref('silver_bridge__layerzero_bridge_seed') }}
+    s
+    ON b.dstEid :: STRING = s.eid :: STRING

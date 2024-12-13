@@ -4,6 +4,7 @@ algorand,algorand
 aptos,aptos
 arbitrum,arbitrum
 arbitrum nova,arbitrum nova
+arbitrum_nova,arbitrum nova
 arbitrum one,arbitrum
 archway,archway
 astar,astar
@@ -15,6 +16,7 @@ base,base
 bnb,bsc
 bnb chain,bsc
 bnb smart chain mainnet,bsc
+bob,boba
 boba bnb mainnet,boba
 boba network,boba
 bsc,bsc
@@ -25,24 +27,38 @@ celo mainnet,celo
 coinweb,coinweb
 conflux,conflux
 conflux espace,conflux
+core blockchain mainnet,core
 crab network,crab
 crescent,crescent
 cronos mainnet,cronos
 crypto chain,crypto
+cyber,cyber
+cyber mainnet,cyber
 dfk chain,dfk
 dogechain mainnet,dogechain
 eos,eos
+endurance smart chain mainnet,endurance smart chain
 ethereum,ethereum
 ethereum mainnet,ethereum
+everclear mainnet,everclear
 evmos,evmos
 fantom,fantom
 fantom opera,fantom
 filecoin,filecoin
+flare mainnet,flare
+fraxchain mainnet,fraxchain
 fuse,fuse
+fuse mainnet,fuse
 gnosis,gnosis
+gravity,gravity
+gravity alpha mainnet,gravity
 harmony mainnet shard 0,harmony
 huobi eco chain mainnet,huobi eco
+inevm,inevm
+inevm mainnet,inevm
 injective,injective
+immutable,immutable x
+immutable_x,immutable x
 juno,juno
 karura,karura
 kava,kava
@@ -50,36 +66,48 @@ klaytn,klaytn
 klaytn mainnet cypress,klaytn
 kujira,kujira
 linea,linea
+lukso mainnet,lukso
 manta,manta
+manta pacific mainnet,manta
 mantle,mantle
 metis,metis
 metis andromeda mainnet,metis
+mint,mint
+mint mainnet,mint
 moonbeam,moonbeam
 moonriver,moonriver
 nautilus,nautilus
 near,near
 neutron,neutron
 oasis,oasis
+okbchain mainnet,okbchain
 okxchain mainnet,okxchain
 ontology mainnet,ontology
 op mainnet,optimism
 opbnb,opbnb
 optimism,optimism
 osmosis,osmosis
+orderly mainnet,orderly
 polygon,polygon
 polygon mainnet,polygon
 polygon pos,polygon
 polygon zkevm,polygon zkevm
+polygon_zkevm,polygon zkevm
+proof of play - apex,proof of play apex
+proof_of_play_apex,proof of play apex
 ronin,ronin
 scroll,scroll
 secret-snip,secret
 sei,sei
+sei network,sei
 skale europa,skale europa
 skale nebula,skale nebula
 solana,solana
 stargaze,stargaze
 starknet,starknet
 sui,sui
+taiko,taiko
+taiko mainnet,taiko
 telos evm mainnet,telos
 terra,terra
 terra-2,terra2
@@ -88,11 +116,24 @@ tezos,tezos
 tron,tron
 umee,umee
 waves,waves
+world chain,worldchain
+worldchain,worldchain
 xpla,xpla
 xrpl,xrpl
+x layer,x layer
+x_layer,x layer
 zkfair,zkfair
+zetachain,zetachain
+zetachain mainnet,zetachain
+zircuit,zircuit
+zircuit mainnet,zircuit
+zklink_nova,zklink nova
 zksync era,zksync era
 zksync era mainnet,zksync era
+zksynce_era,zksync era
 zksync lite,zksync lite
+zksync_lite,zksync lite
 zora,zora
 zzz,zzz
+
+

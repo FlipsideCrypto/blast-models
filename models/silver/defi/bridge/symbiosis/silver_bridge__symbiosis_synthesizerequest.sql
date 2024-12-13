@@ -35,15 +35,15 @@ WITH base_evt AS (
         segmented_data [0] :: STRING AS id,
         CONCAT('0x', SUBSTR(topics [3] :: STRING, 27, 40)) AS revertableAddress,
         CONCAT('0x', SUBSTR(segmented_data [1] :: STRING, 25, 40)) AS to_address,
-        segmented_data [3] :: STRING AS token,
+        CONCAT('0x', SUBSTR(segmented_data [3] :: STRING, 25, 40)) AS token,
         CASE
             WHEN tx_status = 'SUCCESS' THEN TRUE
             ELSE FALSE
         END AS tx_succeeded,
         CONCAT(
-            tx_hash,
+            tx_hash :: STRING,
             '-',
-            event_index
+            event_index :: STRING
         ) AS _log_id,
         modified_timestamp
     FROM
