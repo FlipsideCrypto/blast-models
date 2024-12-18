@@ -49,10 +49,9 @@ init_liquidations AS (
     utils.udf_hex_to_int(
       segmented_data [1] :: STRING
     ) :: FLOAT AS sharesamt,
-    -- receipt token
     contract_address AS token,
     'INIT Capital' AS platform,
-    inserted_timestamp AS _inserted_timestamp,
+    modified_timestamp,
     _log_id
   FROM
     {{ ref('core__fact_event_logs') }}
@@ -60,6 +59,15 @@ init_liquidations AS (
     contract_address = '0xa7d36f2106b5a5d528a7e2e7a3f436d703113a10'
     AND topics [0] :: STRING = '0x6df71caf4cddb1620bcf376243248e0077da98913d65a7e9315bc9984e5fff72'
     AND tx_status = 'SUCCESS'
+    {% if is_incremental() %}
+        AND modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+    {% endif %}
 ),
 token_transfer AS (
   SELECT
@@ -72,7 +80,7 @@ token_transfer AS (
     token_symbol,
     token_name
   FROM
-    {{ ref('core__fact_token_transfers') }}
+    {{ ref('core__fact_token_transfers') }} a
     LEFT JOIN {{ ref('silver__contracts') }} USING(contract_address)
   WHERE
     1 = 1
@@ -95,14 +103,14 @@ token_transfer AS (
           token_address
         FROM
           asset_details
-      ) -- for Blast
+      )
       OR from_address IN (
         SELECT
           underlying_asset_address
         FROM
           asset_details
       )
-    ) -- to get USDB from WUSDB
+    )
     AND tx_hash IN (
       SELECT
         tx_hash
@@ -130,7 +138,6 @@ SELECT
     10,
     C.token_decimals
   ) AS tokens_seized,
-  -- in tokens
   underlying_amount_raw / pow(
     10,
     d.token_decimals
@@ -139,7 +146,7 @@ SELECT
   C.underlying_asset_address AS liquidation_contract_address,
   C.underlying_symbol AS liquidation_contract_symbol,
   l.platform,
-  l._inserted_timestamp,
+  l.modified_timestamp,
   l._log_id
 FROM
   init_liquidations l

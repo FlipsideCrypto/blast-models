@@ -1,16 +1,15 @@
 {{ config(
   materialized = 'incremental',
   incremental_strategy = 'delete+insert',
-  unique_key = "block_number",
+  unique_key = "block_number", 
   cluster_by = ['block_timestamp::DATE'],
   tags = ['reorg','curated']
 ) }}
 
 WITH asset_details AS (
-
   SELECT
     token_address,
-    token_name,
+    token_name, 
     token_symbol,
     token_decimals,
     underlying_asset_address,
@@ -43,10 +42,10 @@ orbit_borrows AS (
     ) :: INTEGER AS totalBorrows,
     contract_address AS token,
     'Orbit' AS platform,
-    _inserted_timestamp,
+    modified_timestamp,
     _log_id
   FROM
-    {{ ref('silver__logs') }}
+    {{ ref('core__fact_event_logs') }}
   WHERE
     contract_address IN (
       SELECT
@@ -56,16 +55,15 @@ orbit_borrows AS (
     )
     AND topics [0] :: STRING = '0x13ed6866d4e1ee6da46f845c46d7e54120883d75c5ea9a2dacc1c4ca8984ab80'
     AND tx_status = 'SUCCESS'
-
-{% if is_incremental() %}
-AND _inserted_timestamp >= (
-    SELECT
-        MAX(_inserted_timestamp) - INTERVAL '12 hours'
-    FROM
-        {{ this }}
-)
-AND _inserted_timestamp >= SYSDATE() - INTERVAL '7 day'
-{% endif %}
+    {% if is_incremental() %}
+        AND modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+    {% endif %}
 ),
 orbit_combine AS (
   SELECT
@@ -86,7 +84,7 @@ orbit_combine AS (
     C.underlying_decimals,
     b.platform,
     b._log_id,
-    b._inserted_timestamp
+    b.modified_timestamp
   FROM
     orbit_borrows b
     LEFT JOIN asset_details C
@@ -112,9 +110,9 @@ SELECT
     underlying_decimals
   ) AS amount,
   platform,
-  _inserted_timestamp,
+  modified_timestamp,
   _log_id
 FROM
   orbit_combine qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY
-  _inserted_timestamp DESC)) = 1
+  modified_timestamp DESC)) = 1

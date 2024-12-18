@@ -40,17 +40,26 @@ juice_borrows AS (
     utils.udf_hex_to_int (segmented_data[0]) as loan_amount_raw,
     contract_address AS pool_address,
     'Juice' AS platform,
-    inserted_timestamp AS _inserted_timestamp,
+    modified_timestamp,
     _log_id
   FROM
-    {{ ref('core__fact_event_logs') }}
-LEFT JOIN 
+    {{ ref('core__fact_event_logs') }} a
+  LEFT JOIN 
     asset_details on contract_address=pool_address
   WHERE
     contract_address IN (select pool_address from asset_details)
     AND topics [0] :: STRING = '0xcbc04eca7e9da35cb1393a6135a199ca52e450d5e9251cbd99f7847d33a36750'
     AND tx_status = 'SUCCESS'
-    ),
+    {% if is_incremental() %}
+        AND a.modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND a.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+    {% endif %}
+),
 
 juice_combine AS (
   SELECT
@@ -75,7 +84,7 @@ juice_combine AS (
     debt_decimals,
     b.platform,
     b._log_id,
-    b._inserted_timestamp
+    b.modified_timestamp
   FROM
     juice_borrows b
     LEFT JOIN asset_details C
@@ -103,9 +112,9 @@ SELECT
     underlying_decimals
   ) AS amount,
   platform,
-  _inserted_timestamp,
+  modified_timestamp,
   _log_id
 FROM
   juice_combine qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY
-  _inserted_timestamp DESC)) = 1
+  modified_timestamp DESC)) = 1

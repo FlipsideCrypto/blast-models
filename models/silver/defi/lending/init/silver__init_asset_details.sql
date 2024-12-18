@@ -14,6 +14,15 @@ WITH blast_contracts AS (
         {{ ref('silver__contracts') }}
     WHERE
         token_name LIKE 'INIT%'
+    {% if is_incremental() %}
+        AND _inserted_timestamp > (
+            SELECT
+                max(_inserted_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND _inserted_timestamp >= SYSDATE() - INTERVAL '7 day'
+    {% endif %}
 ),
 underlying AS (
     SELECT
@@ -23,7 +32,7 @@ underlying AS (
         from_address AS token_address,
         to_address AS underlying_asset_address
     FROM
-        blast.core.fact_traces
+        {{ ref('core__fact_traces') }}
     WHERE
         identifier = 'CALL_0_1'
         AND LEFT(
@@ -43,7 +52,7 @@ unwrapped AS (
         from_address AS underlying_asset_address,
         to_address AS underlying_unwrap_address
     FROM
-        blast.core.fact_traces
+        {{ ref('core__fact_traces') }}
     WHERE
         identifier = 'CALL_0_0'
         AND LEFT(

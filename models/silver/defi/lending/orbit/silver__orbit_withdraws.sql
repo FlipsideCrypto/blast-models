@@ -7,7 +7,6 @@
 ) }}
 
 WITH asset_details AS (
-
     SELECT
         token_address,
         token_name,
@@ -40,10 +39,10 @@ orbit_redemptions AS (
         ) :: INTEGER AS redeemed_token_raw,
         CONCAT('0x', SUBSTR(segmented_data [0] :: STRING, 25, 40)) AS redeemer,
         'Orbit' AS platform,
-        _inserted_timestamp,
+        modified_timestamp,
         _log_id
     FROM
-        {{ ref('silver__logs') }}
+        {{ ref('core__fact_event_logs') }}
     WHERE
         contract_address IN (
             SELECT
@@ -55,13 +54,13 @@ orbit_redemptions AS (
         AND tx_status = 'SUCCESS'
 
 {% if is_incremental() %}
-AND _inserted_timestamp >= (
-    SELECT
-        MAX(_inserted_timestamp) - INTERVAL '12 hours'
-    FROM
-        {{ this }}
-)
-AND _inserted_timestamp >= SYSDATE() - INTERVAL '7 day'
+        AND modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
 {% endif %}
 ),
 orbit_combine AS (
@@ -85,7 +84,7 @@ orbit_combine AS (
         C.underlying_decimals,
         b.platform,
         b._log_id,
-        b._inserted_timestamp
+        b.modified_timestamp
     FROM
         orbit_redemptions b
         LEFT JOIN asset_details C
@@ -115,9 +114,9 @@ SELECT
     ) AS redeemed_tokens,
     redeemer,
     platform,
-    _inserted_timestamp,
+    modified_timestamp,
     _log_id
 FROM
-    orbit_combine ee qualify(ROW_NUMBER() over(PARTITION BY _log_id
+    orbit_combine qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY
-    _inserted_timestamp DESC)) = 1
+    modified_timestamp DESC)) = 1

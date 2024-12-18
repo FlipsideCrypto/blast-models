@@ -47,7 +47,7 @@ init_borrows AS (
     -- receipt token
     contract_address AS token,
     'INIT Capital' AS platform,
-    inserted_timestamp AS _inserted_timestamp,
+    modified_timestamp,
     _log_id
   FROM
     {{ ref('core__fact_event_logs') }}
@@ -55,6 +55,15 @@ init_borrows AS (
     contract_address = '0xa7d36f2106b5a5d528a7e2e7a3f436d703113a10'
     AND topics [0] :: STRING = '0x49dd87b26edb1c92c93f83b092bd5a425c6bf7a562c0fed02f2576c49f477ba4'
     AND tx_status = 'SUCCESS'
+    {% if is_incremental() %}
+        AND modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+    {% endif %}
 ),
 token_transfer AS (
   -- token transfer checks for withdrawal/deposits in usdb/weth(for hooks leveraging)/blast
@@ -71,8 +80,7 @@ token_transfer AS (
     {{ ref('core__fact_token_transfers') }}
     LEFT JOIN {{ ref('silver__contracts') }} USING(contract_address)
   WHERE
-    1 = 1
-    AND contract_address IN (
+    contract_address IN (
       '0xb1a5700fa2358173fe465e6ea4ff52e36e88e2ad',
       '0x4300000000000000000000000000000000000003',
       '0x4300000000000000000000000000000000000004'
@@ -162,7 +170,7 @@ init_combine AS (
     C.token_decimals,
     b.platform,
     b._log_id,
-    b._inserted_timestamp
+    b.modified_timestamp
   FROM
     init_borrows b
     LEFT JOIN asset_details C
@@ -198,9 +206,9 @@ SELECT
     underlying_decimals
   ) AS underlyingAmount,
   platform,
-  _inserted_timestamp,
+  modified_timestamp,
   _log_id
 FROM
   init_combine qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY
-  _inserted_timestamp DESC)) = 1
+  modified_timestamp DESC)) = 1

@@ -39,10 +39,10 @@ orbit_deposits AS (
     ) :: INTEGER AS mintAmount_raw,
     CONCAT('0x', SUBSTR(segmented_data [0] :: STRING, 25, 40)) AS supplier,
     'Orbit' AS platform,
-    _inserted_timestamp,
+    modified_timestamp,
     _log_id
   FROM
-    {{ ref('silver__logs') }}
+    {{ ref('core__fact_event_logs') }}
   WHERE
     contract_address IN (
       SELECT
@@ -52,15 +52,15 @@ orbit_deposits AS (
     )
     AND topics [0] :: STRING = '0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f'
     AND tx_status = 'SUCCESS'
-{% if is_incremental() %}
-AND _inserted_timestamp >= (
-    SELECT
-        MAX(_inserted_timestamp) - INTERVAL '12 hours'
-    FROM
-        {{ this }}
-)
-AND _inserted_timestamp >= SYSDATE() - INTERVAL '7 day'
-{% endif %}
+    {% if is_incremental() %}
+        AND modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+    {% endif %}
 ),
 orbit_combine AS (
   SELECT
@@ -83,7 +83,7 @@ orbit_combine AS (
     C.underlying_decimals,
     b.platform,
     b._log_id,
-    b._inserted_timestamp
+    b.modified_timestamp
   FROM
     orbit_deposits b
     LEFT JOIN asset_details C
@@ -114,9 +114,9 @@ SELECT
   supplied_symbol,
   supplier,
   platform,
-  _inserted_timestamp,
+  modified_timestamp,
   _log_id
 FROM
   orbit_combine qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY
-  _inserted_timestamp DESC)) = 1
+  modified_timestamp DESC)) = 1

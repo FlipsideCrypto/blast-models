@@ -42,10 +42,10 @@ juice_repayments AS (
       segmented_data [0] :: STRING
     ) :: INTEGER AS repayed_amount_raw,
     'Juice' AS platform,
-    _inserted_timestamp,
+    modified_timestamp,
     _log_id
   FROM
-    {{ ref('silver__logs') }}
+    {{ ref('core__fact_event_logs') }} a
   WHERE
     contract_address IN (
       SELECT
@@ -55,6 +55,15 @@ juice_repayments AS (
     )
     AND topics [0] :: STRING = '0x5c16de4f8b59bd9caf0f49a545f25819a895ed223294290b408242e72a594231'
     AND tx_status = 'SUCCESS'
+    {% if is_incremental() %}
+        AND a.modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND a.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+    {% endif %}
     ),
     
 juice_combine AS (
@@ -76,7 +85,7 @@ juice_combine AS (
     C.underlying_decimals,
     b.platform,
     b._log_id,
-    b._inserted_timestamp
+    b.modified_timestamp
   FROM
     juice_repayments b
     LEFT JOIN asset_details C
@@ -103,9 +112,9 @@ SELECT
     underlying_decimals
   ) AS amount,
   platform,
-  _inserted_timestamp,
+  modified_timestamp,
   _log_id
 FROM
   juice_combine qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY
-  _inserted_timestamp DESC)) = 1
+  modified_timestamp DESC)) = 1

@@ -45,14 +45,12 @@ init_repayments AS (
     utils.udf_hex_to_int(
       segmented_data [0] :: STRING
     ) :: FLOAT AS sharesAmt,
-    -- receipt token
     utils.udf_hex_to_int(
       segmented_data [1] :: STRING
     ) :: FLOAT AS amtToRepay,
-    -- receipt token
     contract_address AS token,
     'INIT Capital' AS platform,
-    inserted_timestamp AS _inserted_timestamp,
+    modified_timestamp,
     _log_id
   FROM
     {{ ref('core__fact_event_logs') }}
@@ -60,6 +58,15 @@ init_repayments AS (
     contract_address = '0xa7d36f2106b5a5d528a7e2e7a3f436d703113a10'
     AND topics [0] :: STRING = '0x77673b670822baca14a7caf6f8038f811649ab73e4c06083b0e58a53389bece7'
     AND tx_status = 'SUCCESS'
+    {% if is_incremental() %}
+        AND modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+    {% endif %}
 ),
 native_transfer AS (
   SELECT
@@ -73,7 +80,7 @@ native_transfer AS (
   FROM
     {{ ref('core__fact_traces') }}
   WHERE
-    to_address IN ('0xf683ce59521aa464066783d78e40cd9412f33d21') -- hard code wweth contract here
+    to_address IN ('0xf683ce59521aa464066783d78e40cd9412f33d21')
     AND tx_hash IN (
       SELECT
         tx_hash
@@ -95,7 +102,7 @@ token_transfer AS (
     token_symbol,
     token_name
   FROM
-    {{ ref('core__fact_token_transfers') }}
+    {{ ref('core__fact_token_transfers') }} a
     LEFT JOIN {{ ref('silver__contracts') }} USING(contract_address)
   WHERE
     1 = 1
@@ -110,14 +117,14 @@ token_transfer AS (
           token_address
         FROM
           asset_details
-      ) -- for Blast
+      )
       OR to_address IN (
         SELECT
           underlying_asset_address
         FROM
           asset_details
       )
-    ) -- to get USDB from WUSDB
+    )
     AND tx_hash IN (
       SELECT
         tx_hash
@@ -167,7 +174,7 @@ init_combine AS (
     ) AS underlying_asset_address,
     b.platform,
     b._log_id,
-    b._inserted_timestamp
+    b.modified_timestamp
   FROM
     init_repayments b
     LEFT JOIN asset_details C
@@ -200,9 +207,9 @@ SELECT
     underlying_decimals
   ) AS amount,
   platform,
-  _inserted_timestamp,
+  modified_timestamp,
   _log_id
 FROM
   init_combine qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY
-  _inserted_timestamp DESC)) = 1
+  modified_timestamp DESC)) = 1

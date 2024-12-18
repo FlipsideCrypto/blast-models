@@ -38,10 +38,10 @@ withdraw_logs AS (
         DATA,
         topics,
         tx_status,
-        _inserted_timestamp,
+        modified_timestamp,
         _log_id
     FROM
-        {{ ref('silver__logs') }}
+        {{ ref('core__fact_event_logs') }} a
     WHERE
         (
             contract_address IN (
@@ -58,10 +58,19 @@ withdraw_logs AS (
             )
         )
         AND topics [0] :: STRING IN (
-            '0x884edad9ce6fa2440d8a54cc123490eb96d2768479d49ff9c7366125a9424364' -- pool redeem,
-            '0x0b260cc77140cab3405675836fc971314e656137208b77414be51fafd58ae34b' -- collateral redeem,
-            '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' -- transfer
+            '0x884edad9ce6fa2440d8a54cc123490eb96d2768479d49ff9c7366125a9424364',
+            '0x0b260cc77140cab3405675836fc971314e656137208b77414be51fafd58ae34b',
+            '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
         )
+        {% if is_incremental() %}
+        AND a.modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND a.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+        {% endif %}
 ),
 juice_redemption AS (
     SELECT
@@ -80,7 +89,7 @@ juice_redemption AS (
         ) :: INTEGER AS received_amount_raw,
         CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS redeemer,
         'Juice' AS platform,
-        _inserted_timestamp,
+        modified_timestamp,
         _log_id
     FROM
         withdraw_logs
@@ -111,7 +120,7 @@ juice_collateralredeems AS (
         ) :: INTEGER AS received_amount_raw,
         CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS redeemer,
         'Juice' AS platform,
-        inserted_timestamp AS _inserted_timestamp,
+        modified_timestamp,
         _log_id
     FROM
         withdraw_logs
@@ -175,7 +184,7 @@ juice_combine AS (
         C.underlying_decimals,
         b.platform,
         b._log_id,
-        b._inserted_timestamp
+        b.modified_timestamp
     FROM
         juice_redemption b
         LEFT JOIN token_transfer USING(tx_hash)
@@ -201,7 +210,7 @@ juice_combine AS (
         C.underlying_decimals,
         b.platform,
         b._log_id,
-        b._inserted_timestamp
+        b.modified_timestamp
     FROM
         juice_collateralredeems b
         LEFT JOIN token_transfer d USING(tx_hash)
@@ -217,7 +226,6 @@ SELECT
     origin_to_address,
     origin_function_signature,
     contract_address,
-    --token as token_address,
     token_symbol,
     received_amount_raw AS amount_unadj,
     received_amount_raw / pow(
@@ -232,9 +240,9 @@ SELECT
     ) AS redeemed_tokens,
     redeemer,
     platform,
-    _inserted_timestamp,
+    modified_timestamp,
     _log_id
 FROM
     juice_combine ee qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY
-    _inserted_timestamp DESC)) = 1
+    modified_timestamp DESC)) = 1

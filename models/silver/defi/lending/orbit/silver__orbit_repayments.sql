@@ -37,10 +37,10 @@ orbit_repayments AS (
       segmented_data [2] :: STRING
     ) :: INTEGER AS repayed_amount_raw,
     'Orbit' AS platform,
-    _inserted_timestamp,
+    modified_timestamp,
     _log_id
   FROM
-    {{ ref('silver__logs') }}
+    {{ ref('core__fact_event_logs') }}
   WHERE
     contract_address IN (
       SELECT
@@ -51,14 +51,14 @@ orbit_repayments AS (
     AND topics [0] :: STRING = '0x1a2a22cb034d26d1854bdc6666a5b91fe25efbbb5dcad3b0355478d6f5c362a1'
     AND tx_status = 'SUCCESS'
   {% if is_incremental() %}
-AND _inserted_timestamp >= (
-    SELECT
-        MAX(_inserted_timestamp) - INTERVAL '12 hours'
-    FROM
-        {{ this }}
-)
-AND _inserted_timestamp >= SYSDATE() - INTERVAL '7 day'
-{% endif %}
+    AND modified_timestamp > (
+        SELECT
+            max(modified_timestamp)
+        FROM
+            {{ this }}
+    )
+    AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+  {% endif %}
 ),
 orbit_combine AS (
   SELECT
@@ -80,7 +80,7 @@ orbit_combine AS (
     C.underlying_decimals,
     b.platform,
     b._log_id,
-    b._inserted_timestamp
+    b.modified_timestamp
   FROM
     orbit_repayments b
     LEFT JOIN asset_details C
@@ -108,9 +108,9 @@ SELECT
     underlying_decimals
   ) AS amount,
   platform,
-  _inserted_timestamp,
+  modified_timestamp,
   _log_id
 FROM
   orbit_combine qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY
-  _inserted_timestamp DESC)) = 1
+  modified_timestamp DESC)) = 1

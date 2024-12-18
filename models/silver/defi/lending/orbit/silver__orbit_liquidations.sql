@@ -7,7 +7,6 @@
 ) }}
 
 WITH asset_details AS (
-
   SELECT
     token_address,
     token_name,
@@ -42,10 +41,10 @@ orbit_liquidations AS (
     ) :: INTEGER AS repayAmount_raw,
     CONCAT('0x', SUBSTR(segmented_data [3] :: STRING, 25, 40)) AS tokenCollateral,
     'Orbit' AS platform,
-    _inserted_timestamp,
+    modified_timestamp,
     _log_id
   FROM
-    {{ ref('silver__logs') }}
+    {{ ref('core__fact_event_logs') }}
   WHERE
     contract_address IN (
       SELECT
@@ -57,13 +56,13 @@ orbit_liquidations AS (
     AND tx_status = 'SUCCESS'
 
 {% if is_incremental() %}
-AND _inserted_timestamp >= (
-  SELECT
-    MAX(_inserted_timestamp) - INTERVAL '12 hours'
-  FROM
-    {{ this }}
-)
-AND _inserted_timestamp >= SYSDATE() - INTERVAL '7 day'
+    AND modified_timestamp > (
+        SELECT
+            max(modified_timestamp)
+        FROM
+            {{ this }}
+    )
+    AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
 {% endif %}
 ),
 liquidation_union AS (
@@ -99,7 +98,7 @@ liquidation_union AS (
     asd1.underlying_asset_address AS liquidation_contract_address,
     asd1.underlying_symbol AS liquidation_contract_symbol,
     l.platform,
-    l._inserted_timestamp,
+    l.modified_timestamp,
     l._log_id
   FROM
     orbit_liquidations l
@@ -113,4 +112,4 @@ SELECT
 FROM
   liquidation_union qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY
-  _inserted_timestamp DESC)) = 1
+  modified_timestamp DESC)) = 1

@@ -47,9 +47,8 @@ init_deposits AS (
     utils.udf_hex_to_int(
       segmented_data [0] :: STRING
     ) :: FLOAT AS minttokens_raw,
-    -- receipt token
     'INIT Capital' AS platform,
-    inserted_timestamp AS _inserted_timestamp,
+    modified_timestamp,
     _log_id
   FROM
     {{ ref('core__fact_event_logs') }}
@@ -57,6 +56,15 @@ init_deposits AS (
     contract_address = '0xa7d36f2106b5a5d528a7e2e7a3f436d703113a10'
     AND topics [0] :: STRING = '0x722732c12c1c1ba3942aef8ee6e0357b01908558e142501c5f85b356c4dcadf8'
     AND tx_status = 'SUCCESS'
+    {% if is_incremental() %}
+        AND modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+    {% endif %}
 ),
 token_transfer1 AS (
   SELECT
@@ -70,9 +78,7 @@ token_transfer1 AS (
     t3.token_name,
     t2.from_address AS from_address2,
     t2.to_address AS to_address2,
-    t2.raw_amount AS base_amount,
-    --t4.token_decimals as base_decimals, t4.token_symbol as base_symbol, t4.token_name as base_name
-    -- consolidate names, decimal, symbol, amount
+    t2.raw_amount AS base_amount
   FROM
     {{ ref('core__fact_token_transfers') }}
     t1
@@ -84,8 +90,7 @@ token_transfer1 AS (
     t3
     ON t2.contract_address = t3.contract_address
   WHERE
-    1 = 1
-    AND t1.contract_address IN (
+  t1.contract_address IN (
       SELECT
         underlying_asset_address
       FROM
@@ -104,7 +109,7 @@ token_transfer1 AS (
         token_address
       FROM
         asset_details
-    ) -- for Blast
+    )
     AND t2.contract_address IN (
       SELECT
         underlying_unwrap_address
@@ -118,7 +123,7 @@ token_transfer1 AS (
         FROM
           asset_details
       )
-    ) -- to get USDB from WUSDB
+    )
 ),
 token_transfer2 AS (
   SELECT
@@ -169,7 +174,7 @@ token_transfer2 AS (
         token_address
       FROM
         asset_details
-    ) -- for Blast
+    )
 ),
 token_transfer AS (
   SELECT
@@ -182,7 +187,7 @@ token_transfer AS (
       base_amount,
       raw_amount
     ) AS raw_amount,
-    to_address --coalesce(from_address2, from_address) as from_address
+    to_address
   FROM
     (
       SELECT
@@ -222,7 +227,7 @@ native_transfer AS (
   FROM
     {{ ref('core__fact_traces') }}
   WHERE
-    to_address IN ('0xf683ce59521aa464066783d78e40cd9412f33d21') -- hard code wweth contract here
+    to_address IN ('0xf683ce59521aa464066783d78e40cd9412f33d21')
     AND tx_hash IN (
       SELECT
         tx_hash
@@ -250,7 +255,6 @@ init_combine AS (
       eth_value,
       raw_amount
     ) AS mintAmount_raw,
-    -- actual out
     COALESCE(
       eth_decimals,
       d.token_decimals
@@ -268,7 +272,7 @@ init_combine AS (
     C.token_decimals,
     b.platform,
     b._log_id,
-    b._inserted_timestamp
+    b.modified_timestamp
   FROM
     init_deposits b
     LEFT JOIN asset_details C
@@ -302,9 +306,9 @@ SELECT
   supplied_symbol,
   supplier,
   platform,
-  _inserted_timestamp,
+  modified_timestamp,
   _log_id
 FROM
   init_combine qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY
-  _inserted_timestamp DESC)) = 1
+  modified_timestamp DESC)) = 1

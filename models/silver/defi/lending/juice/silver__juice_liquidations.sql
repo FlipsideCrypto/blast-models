@@ -37,30 +37,35 @@ juice_liquidations AS (
     l.contract_address,
     regexp_substr_all(SUBSTR(l.data, 3, len(l.data)), '.{64}') AS segmented_data,
     CONCAT('0x', SUBSTR(segmented_data [0] :: STRING, 25, 40)) AS borrower,
-    -- account
     l.contract_address AS token,
     utils.udf_hex_to_int(
       segmented_data [1] :: STRING
     ) :: INTEGER AS repayAmount_raw,
-    -- collateral_amount inclusive of fees
     utils.udf_hex_to_int(
       segmented_data [2] :: STRING
     ) :: INTEGER AS bonuscollateral_raw,
-    -- liquidation fee
     utils.udf_hex_to_int(
       segmented_data [3] :: STRING
     ) :: INTEGER AS debtamountneeded_raw,
-    -- debt repaid
     'Juice' AS platform,
-    l._inserted_timestamp,
+    l.modified_timestamp,
     l._log_id
   FROM
-    {{ ref('silver__logs') }} l
+    {{ ref('core__fact_event_logs') }} l
     INNER JOIN asset_details ad
     ON l.contract_address = ad.pool_address
   WHERE
     l.topics [0] :: STRING = '0xe32ec3ea3154879f27d5367898ab3a5ac6b68bf921d7cc610720f417c5cb243c'
     AND l.tx_status = 'SUCCESS'
+    {% if is_incremental() %}
+        AND l.modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND l.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+    {% endif %}
 ),
 token_transfer AS (
   SELECT
@@ -75,7 +80,7 @@ token_transfer AS (
         event_index ASC
     )
   FROM
-    {{ ref('silver__logs') }}
+    {{ ref('core__fact_event_logs') }} a
   WHERE
     1 = 1
     AND contract_address IN (
@@ -92,7 +97,17 @@ token_transfer AS (
       FROM
         juice_liquidations
     )
-    AND tx_status = 'SUCCESS' qualify(ROW_NUMBER() over(PARTITION BY tx_hash
+    AND tx_status = 'SUCCESS'
+    {% if is_incremental() %}
+        AND a.modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND a.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+    {% endif %}
+    qualify(ROW_NUMBER() over(PARTITION BY tx_hash
   ORDER BY
     event_index ASC)) = 1
 ),
@@ -124,7 +139,7 @@ liquidation_union AS (
     asd1.underlying_asset_address AS liquidation_contract_address,
     asd1.underlying_symbol AS liquidation_contract_symbol,
     l.platform,
-    l._inserted_timestamp,
+    l.modified_timestamp,
     l._log_id
   FROM
     juice_liquidations l
@@ -137,4 +152,4 @@ SELECT
 FROM
   liquidation_union qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY
-  _inserted_timestamp DESC)) = 1
+  modified_timestamp DESC)) = 1
