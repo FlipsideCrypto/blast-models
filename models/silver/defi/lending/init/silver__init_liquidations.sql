@@ -127,11 +127,11 @@ SELECT
   origin_to_address,
   origin_function_signature,
   l.contract_address,
+  l.liquidator, --double check with SY
   borrower,
-  token,
-  C.token_symbol,
-  poolOut,
   token AS protocol_market,
+  token, --double check with SY
+  C.token_symbol, --double check with SY
   l.sharesamt AS amount_unadj,
   underlying_amount_raw,
   l.sharesamt / pow(
@@ -143,8 +143,8 @@ SELECT
     d.token_decimals
   ) AS amount,
   C.underlying_decimals,
-  C.underlying_asset_address AS liquidation_contract_address,
-  C.underlying_symbol AS liquidation_contract_symbol,
+  C.underlying_asset_address AS collateral_token,
+  C.underlying_symbol AS collateral_symbol,
   l.platform,
   l.modified_timestamp,
   l._log_id

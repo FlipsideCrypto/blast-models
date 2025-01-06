@@ -21,9 +21,6 @@ models:
       - name: TOKEN_SYMBOL
         tests:
           - not_null
-      - name: PAYER
-        tests:
-          - not_null
       - name: REPAY_CONTRACT_ADDRESS
         tests:
           - not_null

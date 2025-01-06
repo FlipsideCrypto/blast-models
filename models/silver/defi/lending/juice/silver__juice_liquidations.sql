@@ -13,6 +13,7 @@ WITH asset_details AS (
     underlying_name,
     underlying_decimals,
     underlying_symbol,
+    contract_address,
     pool_address,
     token_address,
     token_name,
@@ -37,6 +38,7 @@ juice_liquidations AS (
     l.contract_address,
     regexp_substr_all(SUBSTR(l.data, 3, len(l.data)), '.{64}') AS segmented_data,
     CONCAT('0x', SUBSTR(segmented_data [0] :: STRING, 25, 40)) AS borrower,
+    l.origin_to_address as liquidator,
     l.contract_address AS token,
     utils.udf_hex_to_int(
       segmented_data [1] :: STRING
@@ -53,7 +55,7 @@ juice_liquidations AS (
   FROM
     {{ ref('core__fact_event_logs') }} l
     INNER JOIN asset_details ad
-    ON l.contract_address = ad.pool_address
+    ON l.contract_address = ad.contract_address
   WHERE
     l.topics [0] :: STRING = '0xe32ec3ea3154879f27d5367898ab3a5ac6b68bf921d7cc610720f417c5cb243c'
     AND l.tx_status = 'SUCCESS'
@@ -122,6 +124,7 @@ liquidation_union AS (
     origin_function_signature,
     contract_address,
     borrower,
+    liquidator,
     token,
     asd1.token_symbol AS token_symbol,
     seizeTokens_raw,
@@ -136,8 +139,8 @@ liquidation_union AS (
       asd1.underlying_decimals
     ) AS amount,
     asd1.underlying_decimals,
-    asd1.underlying_asset_address AS liquidation_contract_address,
-    asd1.underlying_symbol AS liquidation_contract_symbol,
+    asd1.underlying_asset_address AS collateral_token,
+    asd1.underlying_symbol AS collateral_symbol,
     l.platform,
     l.modified_timestamp,
     l._log_id

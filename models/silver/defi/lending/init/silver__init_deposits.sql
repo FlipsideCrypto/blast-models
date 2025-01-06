@@ -47,6 +47,7 @@ init_deposits AS (
     utils.udf_hex_to_int(
       segmented_data [0] :: STRING
     ) :: FLOAT AS minttokens_raw,
+    -- receipt token
     'INIT Capital' AS platform,
     modified_timestamp,
     _log_id
@@ -95,8 +96,8 @@ token_transfer1 AS (
         underlying_asset_address
       FROM
         asset_details
-      WHERE
-        underlying_unwrap_address IS NOT NULL
+      {# WHERE
+        underlying_unwrap_address IS NOT NULL #} --ask SY about thiss
     )
     AND t1.tx_hash IN (
       SELECT
@@ -109,7 +110,7 @@ token_transfer1 AS (
         token_address
       FROM
         asset_details
-    )
+    ) -- for Blast
     AND t2.contract_address IN (
       SELECT
         underlying_unwrap_address
@@ -163,12 +164,12 @@ token_transfer2 AS (
       FROM
         init_deposits
     )
-    AND t1.tx_hash NOT IN (
+    {# AND t1.tx_hash NOT IN (
       SELECT
         tx_hash
       FROM
         token_transfer1
-    )
+    ) #} --think we would want to remove this
     AND t1.to_address IN (
       SELECT
         token_address
@@ -187,7 +188,7 @@ token_transfer AS (
       base_amount,
       raw_amount
     ) AS raw_amount,
-    to_address
+    to_address --coalesce(from_address2, from_address) as from_address
   FROM
     (
       SELECT
@@ -227,7 +228,7 @@ native_transfer AS (
   FROM
     {{ ref('core__fact_traces') }}
   WHERE
-    to_address IN ('0xf683ce59521aa464066783d78e40cd9412f33d21')
+    to_address IN ('0xf683ce59521aa464066783d78e40cd9412f33d21') -- hard code wweth contract here
     AND tx_hash IN (
       SELECT
         tx_hash

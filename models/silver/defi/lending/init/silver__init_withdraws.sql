@@ -165,12 +165,12 @@ token_transfer2 AS (
             FROM
                 init_redemption
         )
-        AND t1.tx_hash NOT IN (
+        {# AND t1.tx_hash NOT IN (
             SELECT
                 tx_hash
             FROM
                 token_transfer1
-        )
+        ) #} --think we would want to remove this
         AND t1.from_address IN (
             SELECT
                 token_address

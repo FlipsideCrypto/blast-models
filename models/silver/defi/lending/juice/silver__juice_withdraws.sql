@@ -174,6 +174,7 @@ juice_combine AS (
         origin_to_address,
         origin_function_signature,
         contract_address,
+        b.token as token_address,
         redeemer,
         received_amount_raw,
         redeemed_token_raw,
@@ -200,6 +201,7 @@ juice_combine AS (
         origin_to_address,
         origin_function_signature,
         contract_address,
+        b.token_address,
         redeemer,
         received_amount_raw,
         redeemed_token_raw,
@@ -226,6 +228,7 @@ SELECT
     origin_to_address,
     origin_function_signature,
     contract_address,
+    token_address,
     token_symbol,
     received_amount_raw AS amount_unadj,
     received_amount_raw / pow(

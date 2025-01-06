@@ -255,6 +255,7 @@ collateral_list AS (
         C.name AS token_name,
         C.symbol AS token_symbol,
         C.decimals AS token_decimals,
+        contract_address,
         COALESCE(
             A.underlying_asset,
             b.underlying_asset
@@ -277,6 +278,7 @@ combine_asset AS (
         block_timestamp,
         block_number,
         tx_hash,
+        NULL AS contract_address,
         underlying_asset_address,
         underlying_name,
         underlying_decimals,
@@ -301,6 +303,7 @@ combine_asset AS (
         block_timestamp,
         block_number,
         tx_hash,
+        contract_address,
         underlying_asset_address,
         underlying_name,
         underlying_decimals,
