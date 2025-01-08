@@ -92,4 +92,4 @@ FROM
     INNER JOIN contracts C
     ON C.contract_address = underlying_asset_address
     LEFT JOIN contracts e
-    ON e.contract_address = underlying_unwrap_address -- end of asset list
+    ON e.contract_address = underlying_unwrap_address

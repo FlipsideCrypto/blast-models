@@ -96,8 +96,8 @@ token_transfer1 AS (
         underlying_asset_address
       FROM
         asset_details
-      {# WHERE
-        underlying_unwrap_address IS NOT NULL #} --ask SY about thiss
+      WHERE
+        underlying_unwrap_address IS NOT NULL
     )
     AND t1.tx_hash IN (
       SELECT
@@ -164,12 +164,6 @@ token_transfer2 AS (
       FROM
         init_deposits
     )
-    {# AND t1.tx_hash NOT IN (
-      SELECT
-        tx_hash
-      FROM
-        token_transfer1
-    ) #} --think we would want to remove this
     AND t1.to_address IN (
       SELECT
         token_address
@@ -188,7 +182,7 @@ token_transfer AS (
       base_amount,
       raw_amount
     ) AS raw_amount,
-    to_address --coalesce(from_address2, from_address) as from_address
+    to_address
   FROM
     (
       SELECT
@@ -290,6 +284,7 @@ SELECT
   tx_hash,
   event_index,
   origin_to_address,
+  origin_from_address,
   origin_function_signature,
   contract_address,
   token_address,
