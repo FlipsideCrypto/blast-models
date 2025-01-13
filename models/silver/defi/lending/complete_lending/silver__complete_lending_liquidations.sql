@@ -1,6 +1,7 @@
 -- depends_on: {{ ref('silver__complete_token_prices') }}
 {{ config(
   materialized = 'incremental',
+  enabled = false,
   incremental_strategy = 'delete+insert',
   unique_key = ['block_number','platform'],
   cluster_by = ['block_timestamp::DATE','platform'],
@@ -46,79 +47,12 @@ WHERE
   )
 {% endif %}
 ),
-moonwell AS (
-  SELECT
-    tx_hash,
-    block_number,
-    block_timestamp,
-    event_index,
-    origin_from_address,
-    origin_to_address,
-    origin_function_signature,
-    contract_address,
-    liquidator,
-    borrower,
-    amount_unadj,
-    amount AS liquidated_amount,
-    NULL AS liquidated_amount_usd,
-    token AS protocol_collateral_asset,
-    liquidation_contract_address AS debt_asset,
-    liquidation_contract_symbol AS debt_asset_symbol,
-    collateral_token AS collateral_asset,
-    collateral_symbol AS collateral_asset_symbol,
-    platform,
-    'base' AS blockchain,
-    l._LOG_ID,
-    l._INSERTED_TIMESTAMP
-  FROM
-    {{ ref('silver__moonwell_liquidations') }}
-    l
 
-{% if is_incremental() and 'moonwell' not in var('HEAL_MODELS') %}
-WHERE
-  l._inserted_timestamp >= (
-    SELECT
-      MAX(_inserted_timestamp) - INTERVAL '{{ var("LOOKBACK", "4 hours") }}'
-    FROM
-      {{ this }}
-  )
-{% endif %}
-),
 liquidation_union AS (
   SELECT
     *
   FROM
-    aave
-  UNION ALL
-  SELECT
-    *
-  FROM
-    granary
-  UNION ALL
-  SELECT
-    *
-  FROM
-    morpho
-  UNION ALL
-  SELECT
-    *
-  FROM
-    comp
-  UNION ALL
-  SELECT
-    *
-  FROM
-    sonne
-  UNION ALL
-  SELECT
-    *
-  FROM
-    seamless
-  UNION ALL
-  SELECT
-    *
-  FROM
-    moonwell
+    init
 ),
 complete_lending_liquidations AS (
   SELECT
