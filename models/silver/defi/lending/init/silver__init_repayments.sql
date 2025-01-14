@@ -20,8 +20,7 @@ WITH asset_details AS (
     underlying_unwrap_address,
     underlying_unwrap_name,
     underlying_unwrap_symbol,
-    underlying_unwrap_decimals,
-    _inserted_timestamp
+    underlying_unwrap_decimals
   FROM
     {{ ref('silver__init_asset_details') }}
 ),
@@ -42,6 +41,7 @@ init_repayments AS (
       topics [2] :: STRING
     ) :: FLOAT AS posId,
     CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS pool,
+    CONCAT('0x', SUBSTR(topics [3] :: STRING, 27, 40)) AS repayer,
     utils.udf_hex_to_int(
       segmented_data [0] :: STRING
     ) :: FLOAT AS sharesAmt,
@@ -58,15 +58,16 @@ init_repayments AS (
     contract_address = '0xa7d36f2106b5a5d528a7e2e7a3f436d703113a10'
     AND topics [0] :: STRING = '0x77673b670822baca14a7caf6f8038f811649ab73e4c06083b0e58a53389bece7'
     AND tx_status = 'SUCCESS'
-    {% if is_incremental() %}
-        AND modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-    {% endif %}
+
+{% if is_incremental() %}
+AND modified_timestamp > (
+  SELECT
+    MAX(modified_timestamp)
+  FROM
+    {{ this }}
+)
+AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+{% endif %}
 ),
 native_transfer AS (
   SELECT
@@ -80,7 +81,7 @@ native_transfer AS (
   FROM
     {{ ref('core__fact_traces') }}
   WHERE
-    to_address IN ('0xf683ce59521aa464066783d78e40cd9412f33d21')
+    to_address IN ('0xf683ce59521aa464066783d78e40cd9412f33d21') -- hard code wweth contract here
     AND tx_hash IN (
       SELECT
         tx_hash
@@ -102,11 +103,10 @@ token_transfer AS (
     token_symbol,
     token_name
   FROM
-    {{ ref('core__fact_token_transfers') }} a
+    {{ ref('core__fact_token_transfers') }}
     LEFT JOIN {{ ref('silver__contracts') }} USING(contract_address)
   WHERE
-    1 = 1
-    AND contract_address IN (
+    contract_address IN (
       '0xb1a5700fa2358173fe465e6ea4ff52e36e88e2ad',
       '0x4300000000000000000000000000000000000003',
       '0x4300000000000000000000000000000000000004'
@@ -141,18 +141,15 @@ init_combine AS (
     origin_from_address,
     origin_to_address,
     origin_function_signature,
+    posId,
     b.contract_address,
+    b.pool AS protocol_market,
     borrower,
-    token,
-    C.token_symbol,
-    C.token_decimals,
+    repayer AS payer,
     amttorepay,
     sharesAmt,
     C.underlying_asset_address AS repay_contract_address,
     C.underlying_symbol AS repay_contract_symbol,
-    d.token_decimals AS decimals1,
-    d.contract_address AS contract_address1,
-    d.token_symbol AS symbol1,
     underlying_decimals AS underlying_wrap_decimals,
     COALESCE(
       eth_value,
@@ -170,6 +167,7 @@ init_combine AS (
     ) AS underlying_decimals,
     COALESCE(
       eth_address,
+      d.contract_address,
       C.underlying_asset_address
     ) AS underlying_asset_address,
     b.platform,
@@ -193,10 +191,13 @@ SELECT
   origin_function_signature,
   contract_address,
   borrower,
-  token AS token_address,
-  token_symbol,
+  protocol_market,
+  posId,
+  payer,
   repay_contract_address,
   repay_contract_symbol,
+  underlying_asset_address AS token_address,
+  underlying_symbol AS token_symbol,
   underlying_amount_raw AS amount_unadj,
   amttorepay / pow(
     10,

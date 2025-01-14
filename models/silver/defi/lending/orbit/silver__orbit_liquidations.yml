@@ -36,10 +36,10 @@ models:
               column_type_list:
                 - decimal
                 - float    
-      - name: LIQUIDATION_CONTRACT_ADDRESS
+      - name: DEBT_TOKEN
         tests:
           - not_null
-      - name: LIQUIDATION_CONTRACT_SYMBOL
+      - name: DEBT_TOKEN_SYMBOL
         tests:
           - not_null
       - name: TX_HASH
@@ -48,7 +48,7 @@ models:
       - name: COLLATERAL_TOKEN
         tests: 
           - not_null
-      - name: COLLATERAL_SYMBOL
+      - name: COLLATERAL_TOKEN_SYMBOL
         tests: 
           - not_null
       - name: EVENT_INDEX

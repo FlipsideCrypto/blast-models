@@ -1,6 +1,5 @@
  {{ config(
     materialized = 'view',
-    enabled = false,
     persist_docs ={ "relation": true,
     "columns": true },
     meta={

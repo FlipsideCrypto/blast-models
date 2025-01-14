@@ -7,6 +7,7 @@
 ) }}
 
 WITH asset_details AS (
+
   SELECT
     token_address,
     token_name,
@@ -56,13 +57,13 @@ orbit_liquidations AS (
     AND tx_status = 'SUCCESS'
 
 {% if is_incremental() %}
-    AND modified_timestamp > (
-        SELECT
-            max(modified_timestamp)
-        FROM
-            {{ this }}
-    )
-    AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+AND modified_timestamp >= (
+  SELECT
+    MAX(modified_timestamp) - INTERVAL '12 hours'
+  FROM
+    {{ this }}
+)
+AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
 {% endif %}
 ),
 liquidation_union AS (
@@ -85,10 +86,8 @@ liquidation_union AS (
       asd2.token_decimals
     ) AS tokens_seized,
     tokenCollateral AS protocol_market,
-    asd2.token_symbol AS collateral_token_symbol,
     asd2.underlying_asset_address AS collateral_token,
-    tokenCollateral,
-    asd2.underlying_symbol AS collateral_symbol,
+    asd2.underlying_symbol AS collateral_token_symbol,
     repayAmount_raw AS amount_unadj,
     repayAmount_raw / pow(
       10,
@@ -108,7 +107,29 @@ liquidation_union AS (
     ON l.tokenCollateral = asd2.token_address
 )
 SELECT
-  *
+  block_number,
+  block_timestamp,
+  tx_hash,
+  contract_address,
+  'LiquidateBorrow' AS event_name,
+  event_index,
+  origin_function_signature,
+  origin_from_address,
+  origin_to_address,
+  liquidator,
+  borrower,
+  token,
+  token_symbol,
+  contract_address AS protocol_market,
+  collateral_token,
+  collateral_token_symbol,
+  amount_unadj,
+  amount,
+  liquidation_contract_address AS debt_token,
+  liquidation_contract_symbol AS debt_token_symbol,
+  platform,
+  modified_timestamp,
+  _log_id
 FROM
   liquidation_union qualify(ROW_NUMBER() over(PARTITION BY _log_id
 ORDER BY

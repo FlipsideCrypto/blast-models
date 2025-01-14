@@ -18,9 +18,6 @@ models:
       - name: TOKEN
         tests:
           - not_null
-      - name: TOKEN_SYMBOL
-        tests:
-          - not_null
       - name: LIQUIDATOR
         tests:
           - not_null
@@ -43,7 +40,13 @@ models:
       - name: COLLATERAL_TOKEN
         tests: 
           - not_null
-      - name: COLLATERAL_SYMBOL
+      - name: COLLATERAL_TOKEN_SYMBOL
+        tests: 
+          - not_null
+      - name: DEBT_TOKEN
+        tests: 
+          - not_null
+      - name: DEBT_TOKEN_SYMBOL
         tests: 
           - not_null
       - name: EVENT_INDEX

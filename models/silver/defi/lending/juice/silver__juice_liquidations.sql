@@ -53,21 +53,25 @@ juice_liquidations AS (
     l.modified_timestamp,
     l._log_id
   FROM
-    {{ ref('core__fact_event_logs') }} l
-    INNER JOIN asset_details ad
-    ON l.contract_address = ad.contract_address
+    {{ ref('core__fact_event_logs') }}
+    l
+    INNER JOIN asset_details cl
+    ON l.contract_address = LOWER(
+      cl.contract_address
+    )
   WHERE
     l.topics [0] :: STRING = '0xe32ec3ea3154879f27d5367898ab3a5ac6b68bf921d7cc610720f417c5cb243c'
     AND l.tx_status = 'SUCCESS'
-    {% if is_incremental() %}
-        AND l.modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND l.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-    {% endif %}
+
+{% if is_incremental() %}
+AND modified_timestamp >= (
+  SELECT
+    MAX(modified_timestamp) - INTERVAL '12 hours'
+  FROM
+    {{ this }}
+)
+AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+{% endif %}
 ),
 token_transfer AS (
   SELECT
@@ -82,10 +86,9 @@ token_transfer AS (
         event_index ASC
     )
   FROM
-    {{ ref('core__fact_event_logs') }} a
+    {{ ref('core__fact_event_logs') }}
   WHERE
-    1 = 1
-    AND contract_address IN (
+    contract_address IN (
       SELECT
         token_address
       FROM
@@ -99,19 +102,33 @@ token_transfer AS (
       FROM
         juice_liquidations
     )
-    AND tx_status = 'SUCCESS'
-    {% if is_incremental() %}
-        AND a.modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND a.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-    {% endif %}
-    qualify(ROW_NUMBER() over(PARTITION BY tx_hash
+    AND tx_status = 'SUCCESS' qualify(ROW_NUMBER() over(PARTITION BY tx_hash
   ORDER BY
     event_index ASC)) = 1
+),
+debt_transfer AS (
+  SELECT
+    block_timestamp,
+    tx_hash,
+    utils.udf_hex_to_int(DATA) AS debtamount,
+    debt_name,
+    debt_address AS debt_token,
+    debt_symbol AS debt_token_symbol
+  FROM
+    {{ ref('core__fact_event_logs') }}
+    l
+    INNER JOIN asset_details
+    ON debt_address = l.contract_address
+  WHERE
+    topics [2] = '0x0000000000000000000000000000000000000000000000000000000000000000'
+    AND topics [0] = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+    AND tx_hash IN (
+      SELECT
+        tx_hash
+      FROM
+        juice_liquidations
+    )
+    AND tx_status = 'SUCCESS'
 ),
 liquidation_union AS (
   SELECT
@@ -124,9 +141,9 @@ liquidation_union AS (
     origin_function_signature,
     contract_address,
     borrower,
-    liquidator,
     token,
     asd1.token_symbol AS token_symbol,
+    liquidator,
     seizeTokens_raw,
     seizeTokens_raw / pow(
       10,
@@ -140,7 +157,9 @@ liquidation_union AS (
     ) AS amount,
     asd1.underlying_decimals,
     asd1.underlying_asset_address AS collateral_token,
-    asd1.underlying_symbol AS collateral_symbol,
+    asd1.underlying_symbol AS collateral_token_symbol,
+    debt_token,
+    debt_token_symbol,
     l.platform,
     l.modified_timestamp,
     l._log_id
@@ -149,6 +168,7 @@ liquidation_union AS (
     LEFT JOIN asset_details asd1
     ON l.token = asd1.token_address
     LEFT JOIN token_transfer USING(tx_hash)
+    LEFT JOIN debt_transfer USING(tx_hash)
 )
 SELECT
   *

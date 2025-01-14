@@ -42,7 +42,7 @@ models:
       - name: COLLATERAL_TOKEN
         tests: 
           - not_null
-      - name: COLLATERAL_SYMBOL
+      - name: COLLATERAL_TOKEN_SYMBOL
         tests: 
           - not_null
       - name: EVENT_INDEX

@@ -36,7 +36,6 @@ init_liquidations AS (
     event_index,
     origin_from_address,
     origin_to_address,
-    origin_from_address AS borrower,
     origin_function_signature,
     contract_address,
     topics,
@@ -59,61 +58,81 @@ init_liquidations AS (
     contract_address = '0xa7d36f2106b5a5d528a7e2e7a3f436d703113a10'
     AND topics [0] :: STRING = '0x6df71caf4cddb1620bcf376243248e0077da98913d65a7e9315bc9984e5fff72'
     AND tx_status = 'SUCCESS'
-    {% if is_incremental() %}
-        AND modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-    {% endif %}
+
+{% if is_incremental() %}
+AND modified_timestamp > (
+  SELECT
+    MAX(modified_timestamp)
+  FROM
+    {{ this }}
+)
+AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+{% endif %}
 ),
-token_transfer AS (
+liquidation_union AS (
+  SELECT
+    l.block_number,
+    l.block_timestamp,
+    l.tx_hash,
+    event_index,
+    origin_from_address,
+    origin_to_address,
+    origin_function_signature,
+    l.contract_address,
+    posId,
+    C.token_symbol AS collateral_token_symbol,
+    poolOut AS collateral_token,
+    liquidator,
+    l.sharesamt AS tokens_seized_raw,
+    l.sharesamt / pow(
+      10,
+      C.token_decimals
+    ) AS tokens_seized,
+    -- in tokens
+    C.underlying_decimals,
+    l.platform,
+    l.modified_timestamp,
+    l._log_id
+  FROM
+    init_liquidations l
+    LEFT JOIN asset_details C
+    ON l.poolOut = C.token_address
+),
+init_repayment AS (
   SELECT
     tx_hash,
-    contract_address,
-    from_address,
-    to_address,
-    raw_amount AS underlying_amount_raw,
-    token_decimals,
-    token_symbol,
-    token_name
+    protocol_market,
+    token_address AS debt_token,
+    token_symbol AS debt_token_symbol,
+    posId,
+    amount_unadj,
+    amount
   FROM
-    {{ ref('core__fact_token_transfers') }} a
-    LEFT JOIN {{ ref('silver__contracts') }} USING(contract_address)
+    {{ ref('silver__init_repayments') }}
   WHERE
-    1 = 1
-    AND (
-      contract_address IN (
-        '0xb1a5700fa2358173fe465e6ea4ff52e36e88e2ad',
-        '0x4300000000000000000000000000000000000003',
-        '0x4300000000000000000000000000000000000004'
-      )
-      OR contract_address IN (
-        SELECT
-          underlying_asset_address
-        FROM
-          asset_details
-      )
-    )
-    AND (
-      from_address IN (
-        SELECT
-          token_address
-        FROM
-          asset_details
-      )
-      OR from_address IN (
-        SELECT
-          underlying_asset_address
-        FROM
-          asset_details
-      )
-    )
-    AND tx_hash IN (
+    tx_hash IN (
       SELECT
         tx_hash
+      FROM
+        init_liquidations
+    )
+),
+position_owner AS (
+  SELECT
+    regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
+    CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS borrower,
+    utils.udf_hex_to_int(
+      topics [2] :: STRING
+    ) :: STRING AS posId -- using string as it handles better than float
+  FROM
+    {{ ref('core__fact_event_logs') }}
+  WHERE
+    contract_address = '0xa7d36f2106b5a5d528a7e2e7a3f436d703113a10'
+    AND topics [0] :: STRING = '0xe6a96441ecc85d0943a914f4750f067a912798ec2543bc68c00e18291da88d14' -- createposition
+    AND tx_status = 'SUCCESS'
+    AND posId IN (
+      SELECT
+        posId
       FROM
         init_liquidations
     )
@@ -127,31 +146,24 @@ SELECT
   origin_to_address,
   origin_function_signature,
   l.contract_address,
-  l.liquidator, --double check with SY
+  l.contract_address as token,
+  liquidator,
   borrower,
-  token AS protocol_market,
-  token, --double check with SY
-  C.token_symbol, --double check with SY
-  l.sharesamt AS amount_unadj,
-  underlying_amount_raw,
-  l.sharesamt / pow(
-    10,
-    C.token_decimals
-  ) AS tokens_seized,
-  underlying_amount_raw / pow(
-    10,
-    d.token_decimals
-  ) AS amount,
-  C.underlying_decimals,
-  C.underlying_asset_address AS collateral_token,
-  C.underlying_symbol AS collateral_symbol,
-  l.platform,
-  l.modified_timestamp,
-  l._log_id
+  protocol_market,
+  collateral_token,
+  collateral_token_symbol,
+  tokens_seized_raw as amount_unadj,
+  tokens_seized as amount,
+  debt_token,
+  debt_token_symbol,
+  platform,
+  modified_timestamp,
+  _log_id
 FROM
-  init_liquidations l
-  LEFT JOIN asset_details C
-  ON l.poolOut = C.token_address
-  LEFT JOIN token_transfer d
-  ON l.tx_hash = d.tx_hash
-  AND C.underlying_asset_address = d.from_address
+  liquidation_union l
+  LEFT JOIN position_owner po ON l.posId = po.posId 
+  LEFT JOIN init_repayment r ON l.posId = r.posId
+    AND l.tx_hash = r.tx_hash
+  qualify(ROW_NUMBER() over(PARTITION BY _log_id
+ORDER BY
+  modified_timestamp DESC)) = 1

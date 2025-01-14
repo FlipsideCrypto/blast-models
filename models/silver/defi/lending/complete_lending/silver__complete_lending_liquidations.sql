@@ -1,7 +1,6 @@
 -- depends_on: {{ ref('silver__complete_token_prices') }}
 {{ config(
   materialized = 'incremental',
-  enabled = false,
   incremental_strategy = 'delete+insert',
   unique_key = ['block_number','platform'],
   cluster_by = ['block_timestamp::DATE','platform'],
@@ -25,21 +24,97 @@ WITH init AS (
     amount AS liquidated_amount,
     NULL AS liquidated_amount_usd,
     token AS protocol_collateral_asset,
-    liquidation_contract_address AS debt_asset,
-    liquidation_contract_symbol AS debt_asset_symbol,
+    debt_token AS debt_asset,
+    debt_token_symbol AS debt_asset_symbol,
     collateral_token AS collateral_asset,
-    collateral_symbol AS collateral_asset_symbol,
+    collateral_token_symbol AS collateral_asset_symbol,
     platform,
-    'base' AS blockchain,
+    'blast' AS blockchain,
     l._LOG_ID,
-    l._INSERTED_TIMESTAMP
+    l.modified_timestamp as _inserted_timestamp
   FROM
     {{ ref('silver__init_liquidations') }}
     l
 
 {% if is_incremental() and 'init' not in var('HEAL_MODELS') %}
 WHERE
-  l._inserted_timestamp >= (
+  _inserted_timestamp >= (
+    SELECT
+      MAX(_inserted_timestamp) - INTERVAL '{{ var("LOOKBACK", "4 hours") }}'
+    FROM
+      {{ this }}
+  )
+{% endif %}
+),
+orbit AS (
+  SELECT
+    tx_hash,
+    block_number,
+    block_timestamp,
+    event_index,
+    origin_from_address,
+    origin_to_address,
+    origin_function_signature,
+    contract_address,
+    liquidator,
+    borrower,
+    amount_unadj,
+    amount AS liquidated_amount,
+    NULL AS liquidated_amount_usd,
+    token AS protocol_collateral_asset,
+    debt_token AS debt_asset,
+    debt_token_symbol AS debt_asset_symbol,
+    collateral_token AS collateral_asset,
+    collateral_token_symbol AS collateral_asset_symbol,
+    platform,
+    'blast' AS blockchain,
+    l._LOG_ID,
+    l.modified_timestamp as _inserted_timestamp
+  FROM
+    {{ ref('silver__orbit_liquidations') }}
+    l
+
+{% if is_incremental() and 'orbit' not in var('HEAL_MODELS') %}
+WHERE
+  _inserted_timestamp >= (
+    SELECT
+      MAX(_inserted_timestamp) - INTERVAL '{{ var("LOOKBACK", "4 hours") }}'
+    FROM
+      {{ this }}
+  )
+{% endif %}
+),
+juice AS (
+  SELECT
+    tx_hash,
+    block_number,
+    block_timestamp,
+    event_index,
+    origin_from_address,
+    origin_to_address,
+    origin_function_signature,
+    contract_address,
+    liquidator,
+    borrower,
+    amount_unadj,
+    amount AS liquidated_amount,
+    NULL AS liquidated_amount_usd,
+    token AS protocol_collateral_asset,
+    debt_token AS debt_asset,
+    debt_token_symbol AS debt_asset_symbol,
+    collateral_token AS collateral_asset,
+    collateral_token_symbol AS collateral_asset_symbol,
+    platform,
+    'blast' AS blockchain,
+    l._LOG_ID,
+    l.modified_timestamp as _inserted_timestamp
+  FROM
+    {{ ref('silver__juice_liquidations') }}
+    l
+
+{% if is_incremental() and 'juice' not in var('HEAL_MODELS') %}
+WHERE
+  _inserted_timestamp >= (
     SELECT
       MAX(_inserted_timestamp) - INTERVAL '{{ var("LOOKBACK", "4 hours") }}'
     FROM
@@ -53,6 +128,16 @@ liquidation_union AS (
     *
   FROM
     init
+  UNION ALL
+  SELECT
+    *
+  FROM
+    orbit
+  UNION ALL
+  SELECT
+    *
+  FROM
+    juice
 ),
 complete_lending_liquidations AS (
   SELECT
@@ -94,7 +179,7 @@ complete_lending_liquidations AS (
     platform,
     A.blockchain,
     A._LOG_ID,
-    A._INSERTED_TIMESTAMP
+    A._inserted_timestamp
   FROM
     liquidation_union A
     LEFT JOIN {{ ref('price__ez_prices_hourly') }}
@@ -142,7 +227,7 @@ heal_model AS (
     platform,
     t0.blockchain,
     t0._LOG_ID,
-    t0._INSERTED_TIMESTAMP
+    t0._inserted_timestamp
   FROM
     {{ this }}
     t0
@@ -232,7 +317,7 @@ SELECT
   platform,
   blockchain,
   _LOG_ID,
-  _INSERTED_TIMESTAMP
+  _inserted_timestamp
 FROM
   heal_model
 {% endif %}
