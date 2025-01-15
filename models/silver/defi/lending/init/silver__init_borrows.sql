@@ -66,7 +66,7 @@ init_borrows AS (
     {% endif %}
 ),
 token_transfer AS (
-  -- token transfer checks for withdrawal/deposits in usdb/weth(for hooks leveraging)/blast
+  
   SELECT
     tx_hash,
     contract_address,
@@ -107,7 +107,7 @@ token_transfer AS (
     )
 ),
 native_transfer AS (
-  -- native transfer checks for withdrawal/deposits as eth
+  
   SELECT
     tx_hash,
     from_address AS wrapped_address,
@@ -119,7 +119,7 @@ native_transfer AS (
   FROM
     {{ ref('core__fact_traces') }}
   WHERE
-    from_address IN ('0xf683ce59521aa464066783d78e40cd9412f33d21') -- hard code wweth contract here
+    from_address IN ('0xf683ce59521aa464066783d78e40cd9412f33d21')
     AND tx_hash IN (
       SELECT
         tx_hash
@@ -144,7 +144,6 @@ init_combine AS (
     pool,
     loan_amount_raw,
     C.underlying_decimals AS underlying_wrap_decimals,
-    -- this does the filtering for if not eth(native) -> if not token(USDB/WETH/BLAST) -> then underlying token (eg. ezETH/weETH/etc)
     COALESCE(
       eth_value,
       underlying_amount_raw
@@ -176,7 +175,7 @@ init_combine AS (
     LEFT JOIN asset_details C
     ON b.pool = C.token_address
     LEFT JOIN token_transfer d
-    ON b.tx_hash = d.tx_hash -- AND b.pool = d.from_address
+    ON b.tx_hash = d.tx_hash
     LEFT JOIN native_transfer e
     ON b.tx_hash = e.tx_hash
 )

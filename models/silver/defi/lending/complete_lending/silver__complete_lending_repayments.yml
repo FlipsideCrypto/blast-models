@@ -20,8 +20,7 @@ models:
               interval: 30
       - name: EVENT_INDEX
         tests:
-          - not_null:
-              where: PLATFORM <> 'Morpho Blue'
+          - not_null
       - name: PROTOCOL_MARKET
         tests:
           - not_null

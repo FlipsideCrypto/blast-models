@@ -9,20 +9,35 @@
 WITH blast_contracts AS (
 
     SELECT
-        *
+        address,
+        symbol,
+        NAME,
+        decimals,
+        modified_timestamp
     FROM
-        {{ ref('silver__contracts') }}
+        {{ ref('core__dim_contracts') }}
     WHERE
-        token_name LIKE 'INIT%'
+        NAME LIKE 'INIT%'
     {% if is_incremental() %}
-        AND _inserted_timestamp > (
+        AND modified_timestamp > (
             SELECT
-                max(_inserted_timestamp)
+                max(modified_timestamp)
             FROM
                 {{ this }}
         )
-        AND _inserted_timestamp >= SYSDATE() - INTERVAL '7 day'
+        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
     {% endif %}
+),
+contracts AS (
+
+    SELECT
+        address,
+        symbol,
+        NAME,
+        decimals,
+        modified_timestamp
+    FROM
+        {{ ref('core__dim_contracts') }}
 ),
 underlying AS (
     SELECT
@@ -42,7 +57,7 @@ underlying AS (
         AND trace_status = 'SUCCESS'
         AND from_address IN (
             SELECT
-                contract_address
+                address
             FROM
                 blast_contracts
         )
@@ -72,24 +87,24 @@ SELECT
     A.block_number,
     A.tx_hash,
     token_address,
-    b.token_name,
-    b.token_symbol,
-    b.token_decimals,
+    b.name AS token_name,
+    b.symbol AS token_symbol,
+    b.decimals AS token_decimals,
     underlying_asset_address,
-    C.token_name AS underlying_name,
-    C.token_symbol AS underlying_symbol,
-    C.token_decimals AS underlying_decimals,
+    C.name AS underlying_name,
+    C.symbol AS underlying_symbol,
+    C.decimals AS underlying_decimals,
     d.underlying_unwrap_address,
-    e.token_name AS underlying_unwrap_name,
-    e.token_symbol AS underlying_unwrap_symbol,
-    e.token_decimals AS underlying_unwrap_decimals,
-    b._inserted_timestamp
+    e.name AS underlying_unwrap_name,
+    e.symbol AS underlying_unwrap_symbol,
+    e.decimals AS underlying_unwrap_decimals,
+    b.modified_timestamp
 FROM
     underlying A
     INNER JOIN blast_contracts b
-    ON b.contract_address = token_address
+    ON b.address = token_address
     LEFT JOIN unwrapped d USING(underlying_asset_address)
     INNER JOIN contracts C
-    ON C.contract_address = underlying_asset_address
+    ON C.address = underlying_asset_address
     LEFT JOIN contracts e
-    ON e.contract_address = underlying_unwrap_address
+    ON e.address = underlying_unwrap_address

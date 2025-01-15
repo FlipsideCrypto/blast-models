@@ -21,17 +21,32 @@ WITH asset_list AS (
 ),
 contracts AS (
     SELECT
-        *
+        address,
+        symbol,
+        NAME,
+        decimals
     FROM
         {{ ref('core__dim_contracts') }}
 ),
 juice_contracts AS (
     SELECT
-        *
+        address,
+        symbol,
+        NAME,
+        decimals
     FROM
-        contracts
+        {{ ref('core__dim_contracts') }}
     WHERE
-        NAME LIKE 'Juice%Collateral%'
+        NAME LIKE 'Juice%'
+    {% if is_incremental() %}
+        AND modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+    {% endif %}
 ),
 collateral_tokens AS (
     SELECT
@@ -60,7 +75,22 @@ collateral_tokens AS (
 ),
 tx_pull AS (
     SELECT
-        *
+        block_number,
+        block_timestamp,
+        tx_hash,
+        origin_function_signature,
+        origin_from_address,
+        origin_to_address,
+        event_index,
+        contract_address,
+        topics,
+        DATA,
+        event_removed,
+        tx_status,
+        _log_id,
+        fact_event_logs_id,
+        inserted_timestamp,
+        modified_timestamp
     FROM
         {{ ref('core__fact_event_logs') }}
     WHERE
@@ -84,7 +114,29 @@ tx_pull AS (
 ),
 trace_pull AS (
     SELECT
-        *
+        tx_hash,
+        block_number,
+        block_timestamp,
+        from_address,
+        to_address,
+        VALUE,
+        value_precise_raw,
+        value_precise,
+        gas,
+        gas_used,
+        input,
+        output,
+        TYPE,
+        identifier,
+        DATA,
+        tx_status,
+        sub_traces,
+        trace_status,
+        error_reason,
+        trace_index,
+        fact_traces_id,
+        inserted_timestamp,
+        modified_timestamp
     FROM
         {{ ref('core__fact_traces') }}
     WHERE
@@ -98,15 +150,6 @@ trace_pull AS (
             'CREATE_0_5',
             'CREATE_0_4'
         )
-        {% if is_incremental() %}
-        AND modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-        {% endif %}
 ),
 debt_token AS (
     SELECT
@@ -144,9 +187,24 @@ token AS (
 ),
 underlying AS (
     SELECT
-        *,
+        block_number,
+        block_timestamp,
+        tx_hash,
+        origin_function_signature,
+        origin_from_address,
+        origin_to_address,
+        event_index,
+        contract_address,
+        topics,
+        DATA,
+        event_removed,
+        tx_status,
+        _log_id,
+        fact_event_logs_id,
+        inserted_timestamp,
+        modified_timestamp
     FROM
-        {{ ref('core__fact_event_logs') }}
+        tx_pull
     WHERE
         tx_hash IN (
             SELECT
@@ -154,15 +212,6 @@ underlying AS (
             FROM
                 tx_pull
         )
-        {% if is_incremental() %}
-        AND modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-        {% endif %}
 ),
 underlying_asset AS (
     SELECT
@@ -200,19 +249,25 @@ logs_pull AS (
             FROM
                 juice_contracts
         )
-        {% if is_incremental() %}
-        AND modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-        {% endif %}
 ),
 get_underlying AS (
     SELECT
-        *
+        block_number,
+        block_timestamp,
+        tx_hash,
+        origin_function_signature,
+        origin_from_address,
+        origin_to_address,
+        event_index,
+        contract_address,
+        topics,
+        DATA,
+        event_removed,
+        tx_status,
+        _log_id,
+        fact_event_logs_id,
+        inserted_timestamp,
+        modified_timestamp
     FROM
         {{ ref('core__fact_event_logs') }}
     WHERE
@@ -223,15 +278,6 @@ get_underlying AS (
                 logs_pull
         )
         AND topics [0] = '0xcaa97ab28bae75adcb5a02786c64b44d0d3139aa521bf831cdfbe280ef246e36'
-        {% if is_incremental() %}
-        AND modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-        {% endif %}
 ),
 collateral_base AS (
     SELECT
@@ -323,6 +369,24 @@ combine_asset AS (
         collateral_list
 )
 SELECT
-    *
+    block_timestamp,
+    block_number,
+    tx_hash,
+    contract_address,
+    underlying_asset_address,
+    underlying_name,
+    underlying_decimals,
+    underlying_symbol,
+    pool_address,
+    token_address,
+    token_name,
+    token_decimals,
+    token_symbol,
+    debt_address,
+    debt_name,
+    debt_decimals,
+    debt_symbol,
+    modified_timestamp,
+    _log_id
 FROM
     combine_asset
