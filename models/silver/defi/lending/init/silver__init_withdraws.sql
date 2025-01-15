@@ -24,7 +24,7 @@ WITH asset_details AS (
         underlying_unwrap_name,
         underlying_unwrap_symbol,
         underlying_unwrap_decimals,
-        _inserted_timestamp
+        modified_timestamp
     FROM
         {{ ref('silver__init_asset_details') }}
 ),

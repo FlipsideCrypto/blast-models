@@ -35,18 +35,9 @@ juice_contracts AS (
         NAME,
         decimals
     FROM
-        {{ ref('core__dim_contracts') }}
+        contracts
     WHERE
-        NAME LIKE 'Juice%'
-    {% if is_incremental() %}
-        AND modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-    {% endif %}
+        NAME like 'Juice%Collateral%' 
 ),
 collateral_tokens AS (
     SELECT
@@ -96,12 +87,7 @@ tx_pull AS (
     WHERE
         origin_from_address = '0x0ee09b204ffebf9a1f14c99e242830a09958ba34'
         AND origin_to_address = '0x4e59b44847b379578588920ca78fbf26c0b4956c'
-        AND CONCAT('0x', SUBSTR(topics [1], 27, 40)) IN (
-            SELECT
-                pool_address
-            FROM
-                asset_list
-        )
+        AND concat('0x',substr(topics[1], 27,40)) in (select pool_address from asset_list)
         {% if is_incremental() %}
         AND modified_timestamp > (
             SELECT

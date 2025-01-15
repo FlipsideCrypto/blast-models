@@ -83,8 +83,7 @@ log_pull AS (
         l.modified_timestamp,
         l._log_id
     FROM
-        {{ ref('core__fact_event_logs') }}
-        l
+        log_pull_1 l
         LEFT JOIN contracts C
         ON C.contract_address = l.contract_address
 ),
