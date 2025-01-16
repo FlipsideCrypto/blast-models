@@ -70,6 +70,13 @@ contracts AS (
             FROM
                 traces_pull
         )
+        OR address IN (
+            SELECT
+                contract_address
+            FROM
+                log_pull_1
+        )
+        OR address = '0x4300000000000000000000000000000000000004'
 ),
 log_pull AS (
     SELECT

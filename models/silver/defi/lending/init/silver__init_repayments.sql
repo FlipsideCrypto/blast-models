@@ -143,33 +143,18 @@ init_combine AS (
     origin_function_signature,
     posId,
     b.contract_address,
-    b.pool AS protocol_market,
+    b.pool as protocol_market,
     borrower,
-    repayer AS payer,
+    repayer as payer,
     amttorepay,
     sharesAmt,
     C.underlying_asset_address AS repay_contract_address,
     C.underlying_symbol AS repay_contract_symbol,
-    underlying_decimals AS underlying_wrap_decimals,
-    COALESCE(
-      eth_value,
-      underlying_amount_raw
-    ) AS underlying_amount_raw,
-    COALESCE(
-      eth_symbol,
-      d.token_symbol,
-      C.underlying_symbol
-    ) AS underlying_symbol,
-    COALESCE(
-      eth_decimals,
-      d.token_decimals,
-      C.underlying_decimals
-    ) AS underlying_decimals,
-    COALESCE(
-      eth_address,
-      d.contract_address,
-      C.underlying_asset_address
-    ) AS underlying_asset_address,
+    underlying_decimals as underlying_wrap_decimals,
+    COALESCE(eth_value, underlying_amount_raw ) as underlying_amount_raw,
+    COALESCE(eth_symbol, d.token_symbol, C.underlying_symbol) as underlying_symbol,
+    COALESCE(eth_decimals, d.token_decimals, C.underlying_decimals) as underlying_decimals,
+    COALESCE(eth_address, d.contract_address, C.underlying_asset_address) as underlying_asset_address,
     b.platform,
     b._log_id,
     b.modified_timestamp
@@ -177,7 +162,8 @@ init_combine AS (
     init_repayments b
     LEFT JOIN asset_details C
     ON b.pool = C.token_address
-    LEFT JOIN native_transfer USING(tx_hash)
+    LEFT JOIN native_transfer
+    USING(tx_hash)
     LEFT JOIN token_transfer d
     ON b.tx_hash = d.tx_hash
 )
@@ -189,21 +175,21 @@ SELECT
   origin_from_address,
   origin_to_address,
   origin_function_signature,
+  posId,
   contract_address,
   borrower,
   protocol_market,
-  posId,
   payer,
   repay_contract_address,
   repay_contract_symbol,
-  underlying_asset_address AS token_address,
-  underlying_symbol AS token_symbol,
-  underlying_amount_raw AS amount_unadj,
+  underlying_asset_address as token_address,
+  underlying_symbol as token_symbol,
+  amtToRepay AS amount_unadj,
   amttorepay / pow(
     10,
     underlying_wrap_decimals
   ) AS total_repaid,
-  underlying_amount_raw / pow(
+  amtToRepay / pow(
     10,
     underlying_decimals
   ) AS amount,
