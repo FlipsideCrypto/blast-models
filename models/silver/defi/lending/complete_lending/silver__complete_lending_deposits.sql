@@ -133,7 +133,11 @@ complete_lending_deposits AS (
     origin_to_address,
     origin_function_signature,
     A.contract_address,
-    'Deposit' AS event_name, --update to get event name from event_name column
+    CASE 
+      WHEN platform = 'INIT Capital' THEN 'Collateralize' 
+      WHEN platform = 'Orbit' THEN 'Mint' 
+      ELSE 'Deposit' 
+    END AS event_name,
     protocol_market,
     depositor_address AS depositor,
     A.token_address,

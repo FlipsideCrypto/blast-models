@@ -140,12 +140,10 @@ complete_lending_withdraws AS (
         origin_function_signature,
         A.contract_address,
         CASE
-            WHEN platform IN (
-                'Moonwell',
-                'Sonne'
-            ) THEN 'Redeem'
-            WHEN platform = 'Compound V3' THEN 'WithdrawCollateral'
-            ELSE 'Withdraw'
+            WHEN platform = 'Orbit' THEN 'Mint'
+            WHEN platform = 'INIT Capital' THEN 'Decollateralize'
+            WHEN platform = 'Juice' THEN 'CollateralWithdrawal'
+            ELSE NULL
         END AS event_name,
         protocol_market,
         depositor_address AS depositor,

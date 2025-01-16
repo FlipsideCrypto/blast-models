@@ -150,12 +150,10 @@ complete_lending_liquidations AS (
     origin_function_signature,
     A.contract_address,
     CASE
-      WHEN platform IN (
-        'Sonne',
-        'Moonwell'
-      ) THEN 'LiquidateBorrow'
-      WHEN platform = 'Compound V3' THEN 'AbsorbCollateral'
-      ELSE 'LiquidationCall'
+      WHEN platform = 'Orbit' THEN 'LiquidateBorrow'
+      WHEN platform = 'INIT Capital' THEN 'Liquidate'
+      WHEN platform = 'Juice' THEN 'CollateralLiquidation'
+      ELSE NULL
     END AS event_name,
     liquidator,
     borrower,
