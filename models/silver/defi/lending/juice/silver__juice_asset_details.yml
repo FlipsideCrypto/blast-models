@@ -1,24 +1,5 @@
 version: 2
 
-# Protocol: Juice Finance (Blast) 
-# Action: Juice Asset List
-# Definition:
-
-
-# Deployer Contract: 0x0ee09b204ffebf9a1f14c99e242830a09958ba34
-
-# Example Txn:
-# https://blastscan.io/tx/0xe407e2e581062f94237a7807203b3954171ab69b2ab2ddc84a323bd070749b80
-# https://blastscan.io/tx/0x0e50cfa71063bd85e69ad87565832979e49bd19cf8f2a18c82b04e4bb87df9cf
-
-# Notes:
-# - Mostly Traces + hard coded lending pool contract_address + collateral tokens
-# - single transaction (deploy tx) which creates pool_address, token_address, debt_address
-# - deposit underlying asset into pool_address creates token_address minted to depositor. Debt is minted when borrow occurs. 
-# - this asset table provides the link to 4 key addresses (and their details ie symbol, decimal, name): pool, token, debt, underlying 
-# - also hard coded collateral tokens for alternative collateral (ezETH, weETH, sUSDE, USDE)
-# - (converted from silver to core tables)
-
 models:
   - name: silver__juice_asset_details
     tests:
