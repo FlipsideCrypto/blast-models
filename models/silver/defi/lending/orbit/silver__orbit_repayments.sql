@@ -96,6 +96,7 @@ SELECT
   origin_to_address,
   origin_function_signature,
   contract_address,
+  contract_address as protocol_market,
   borrower,
   token as token_address,
   token_symbol,

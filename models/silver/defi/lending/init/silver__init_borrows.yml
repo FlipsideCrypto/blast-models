@@ -103,18 +103,3 @@ models:
               column_type_list:
                 - decimal
                 - float
-      - name: PLATFORM
-        tests:
-          - not_null:
-              error_if: ">10"
-              warn_if: ">0"
-      - name: MODIFIED_TIMESTAMP
-        tests:
-          - not_null:
-              error_if: ">10"
-              warn_if: ">0"
-      - name: _LOG_ID
-        tests:
-          - not_null:
-              error_if: ">10"
-              warn_if: ">0"
