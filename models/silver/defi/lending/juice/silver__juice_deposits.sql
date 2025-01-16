@@ -44,7 +44,7 @@ deposit_logs AS (
     inserted_timestamp,
     modified_timestamp
   FROM
-    {{ ref('core__fact_event_logs') }}
+    {{ ref('core__fact_event_logs') }} a
   WHERE
     (
       contract_address IN (
@@ -65,6 +65,15 @@ deposit_logs AS (
       '0xd88c5369d398bea6a7390a17ce98af43f4aacc78fd3587bc368993d98206a304',
       '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
     )
+    {% if is_incremental() %}
+        AND a.modified_timestamp > (
+            SELECT
+                max(modified_timestamp)
+            FROM
+                {{ this }}
+        )
+        AND a.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+    {% endif %}
 ),
 juice_deposits AS (
   SELECT
