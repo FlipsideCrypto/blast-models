@@ -1,10 +1,15 @@
-name: dbt_run_scheduled_decoded_logs_history_user_abis
-run-name: dbt_run_scheduled_decoded_logs_history_user_abis
+name: dbt_run_traces_fix
+run-name: dbt_run_traces_fix
 
 on:
   workflow_dispatch:
-    branches:
-      - "main"
+    inputs:
+      use_xl_env:
+        description: "Use the 2xl environment"
+        type: boolean
+  schedule:
+    # every 15 minutes (see https://crontab.guru)
+    - cron: "*/15 * * * *"
 
 env:
   DBT_PROFILES_DIR: ./
@@ -25,7 +30,7 @@ jobs:
   run_dbt_jobs:
     runs-on: ubuntu-latest
     environment:
-      name: workflow_prod
+      name: ${{ github.event_name == 'workflow_dispatch' && inputs.use_xl_env && 'workflow_prod_2xl' || 'workflow_prod_backfill' }}
 
     steps:
       - uses: actions/checkout@v3
@@ -40,6 +45,6 @@ jobs:
           pip install -r requirements.txt
           dbt deps
 
-      - name: Kick off decoded logs history, if there are new ABIs from users
+      - name: run traces fix model
         run: |
-          dbt run-operation run_decoded_logs_history
+          dbt run -m "blast_models,tag:traces_fix"
