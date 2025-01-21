@@ -51,7 +51,15 @@ juice_liquidations AS (
     ) :: INTEGER AS debtamountneeded_raw,
     'Juice' AS platform,
     l.modified_timestamp,
-    l._log_id
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id
   FROM
     {{ ref('core__fact_event_logs') }}
     l
@@ -61,7 +69,7 @@ juice_liquidations AS (
     )
   WHERE
     l.topics [0] :: STRING = '0xe32ec3ea3154879f27d5367898ab3a5ac6b68bf921d7cc610720f417c5cb243c'
-    AND l.tx_status = 'SUCCESS'
+    AND tx_succeeded
 
 {% if is_incremental() %}
 AND modified_timestamp >= (
@@ -79,7 +87,15 @@ token_transfer AS (
     tx_hash,
     utils.udf_hex_to_int(DATA) AS seizeTokens_raw,
     event_index,
-    _log_id,
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id,
     ROW_NUMBER() over (
       PARTITION BY _log_id
       ORDER BY
@@ -102,7 +118,7 @@ token_transfer AS (
       FROM
         juice_liquidations
     )
-    AND tx_status = 'SUCCESS' qualify(ROW_NUMBER() over(PARTITION BY tx_hash
+    AND tx_succeeded qualify(ROW_NUMBER() over(PARTITION BY tx_hash
   ORDER BY
     event_index ASC)) = 1
 ),
@@ -113,7 +129,16 @@ debt_transfer AS (
     utils.udf_hex_to_int(DATA) AS debtamount,
     debt_name,
     debt_address AS debt_token,
-    debt_symbol AS debt_token_symbol
+    debt_symbol AS debt_token_symbol,
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id
   FROM
     {{ ref('core__fact_event_logs') }}
     l
@@ -128,7 +153,7 @@ debt_transfer AS (
       FROM
         juice_liquidations
     )
-    AND tx_status = 'SUCCESS'
+    AND tx_succeeded
 ),
 liquidation_union AS (
   SELECT

@@ -39,9 +39,17 @@ withdraw_logs AS (
         topics,
         tx_status,
         modified_timestamp,
-        _log_id
+        CASE
+            WHEN tx_status = 'SUCCESS' THEN TRUE
+            ELSE FALSE
+        END AS tx_succeeded,
+        CONCAT(
+        tx_hash :: STRING,
+        '-',
+        event_index :: STRING
+        ) AS _log_id
     FROM
-        {{ ref('core__fact_event_logs') }} a
+        {{ ref('core__fact_event_logs') }} A
     WHERE
         (
             contract_address IN (
@@ -62,15 +70,16 @@ withdraw_logs AS (
             '0x0b260cc77140cab3405675836fc971314e656137208b77414be51fafd58ae34b',
             '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
         )
-        {% if is_incremental() %}
-        AND a.modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND a.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-        {% endif %}
+
+{% if is_incremental() %}
+AND A.modified_timestamp > (
+    SELECT
+        MAX(modified_timestamp)
+    FROM
+        {{ this }}
+)
+AND A.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+{% endif %}
 ),
 juice_redemption AS (
     SELECT
@@ -101,7 +110,7 @@ juice_redemption AS (
                 asset_details
         )
         AND topics [0] :: STRING = '0x0b260cc77140cab3405675836fc971314e656137208b77414be51fafd58ae34b'
-        AND tx_status = 'SUCCESS'
+        AND tx_succeeded
 ),
 juice_collateralredeems AS (
     SELECT
@@ -132,7 +141,7 @@ juice_collateralredeems AS (
                 asset_details
         )
         AND topics [0] :: STRING = '0x0b260cc77140cab3405675836fc971314e656137208b77414be51fafd58ae34b'
-        AND tx_status = 'SUCCESS'
+        AND tx_succeeded
 ),
 token_transfer AS (
     SELECT
@@ -162,7 +171,7 @@ token_transfer AS (
             FROM
                 juice_collateralredeems
         )
-        AND tx_status = 'SUCCESS'
+        AND tx_succeeded
 ),
 juice_combine AS (
     SELECT
@@ -174,7 +183,7 @@ juice_combine AS (
         origin_to_address,
         origin_function_signature,
         contract_address,
-        b.token as token_address,
+        b.token AS token_address,
         redeemer,
         received_amount_raw,
         redeemed_token_raw,

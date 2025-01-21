@@ -51,13 +51,21 @@ init_liquidations AS (
     contract_address AS token,
     'INIT Capital' AS platform,
     modified_timestamp,
-    _log_id
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id
   FROM
     {{ ref('core__fact_event_logs') }}
   WHERE
     contract_address = '0xa7d36f2106b5a5d528a7e2e7a3f436d703113a10'
     AND topics [0] :: STRING = '0x6df71caf4cddb1620bcf376243248e0077da98913d65a7e9315bc9984e5fff72'
-    AND tx_status = 'SUCCESS'
+    AND tx_succeeded
 
 {% if is_incremental() %}
 AND modified_timestamp > (
@@ -123,13 +131,22 @@ position_owner AS (
     CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS borrower,
     utils.udf_hex_to_int(
       topics [2] :: STRING
-    ) :: STRING AS posId -- using string as it handles better than float
+    ) :: STRING AS posId, -- using string as it handles better than float
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id
   FROM
     {{ ref('core__fact_event_logs') }}
   WHERE
     contract_address = '0xa7d36f2106b5a5d528a7e2e7a3f436d703113a10'
     AND topics [0] :: STRING = '0xe6a96441ecc85d0943a914f4750f067a912798ec2543bc68c00e18291da88d14' -- createposition
-    AND tx_status = 'SUCCESS'
+    AND tx_succeeded
     AND posId IN (
       SELECT
         posId
@@ -146,24 +163,25 @@ SELECT
   origin_to_address,
   origin_function_signature,
   l.contract_address,
-  l.contract_address as token,
+  l.contract_address AS token,
   liquidator,
   borrower,
   protocol_market,
   collateral_token,
   collateral_token_symbol,
-  tokens_seized_raw as amount_unadj,
-  tokens_seized as amount,
+  tokens_seized_raw AS amount_unadj,
+  tokens_seized AS amount,
   debt_token,
   debt_token_symbol,
   platform,
   modified_timestamp,
-  _log_id
+  l._log_id
 FROM
   liquidation_union l
-  LEFT JOIN position_owner po ON l.posId = po.posId 
-  LEFT JOIN init_repayment r ON l.posId = r.posId
-    AND l.tx_hash = r.tx_hash
-  qualify(ROW_NUMBER() over(PARTITION BY _log_id
+  LEFT JOIN position_owner po
+  ON l.posId = po.posId
+  LEFT JOIN init_repayment r
+  ON l.posId = r.posId
+  AND l.tx_hash = r.tx_hash qualify(ROW_NUMBER() over(PARTITION BY l._log_id
 ORDER BY
   modified_timestamp DESC)) = 1

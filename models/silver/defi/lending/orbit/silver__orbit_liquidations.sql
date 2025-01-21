@@ -43,7 +43,15 @@ orbit_liquidations AS (
     CONCAT('0x', SUBSTR(segmented_data [3] :: STRING, 25, 40)) AS tokenCollateral,
     'Orbit' AS platform,
     modified_timestamp,
-    _log_id
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id
   FROM
     {{ ref('core__fact_event_logs') }}
   WHERE
@@ -54,7 +62,7 @@ orbit_liquidations AS (
         asset_details
     )
     AND topics [0] :: STRING = '0x298637f684da70674f26509b10f07ec2fbc77a335ab1e7d6215a4b2484d8bb52'
-    AND tx_status = 'SUCCESS'
+    AND tx_succeeded
 
 {% if is_incremental() %}
 AND modified_timestamp >= (

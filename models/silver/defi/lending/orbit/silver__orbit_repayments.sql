@@ -38,7 +38,15 @@ orbit_repayments AS (
     ) :: INTEGER AS repayed_amount_raw,
     'Orbit' AS platform,
     modified_timestamp,
-    _log_id
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id
   FROM
     {{ ref('core__fact_event_logs') }}
   WHERE
@@ -49,7 +57,7 @@ orbit_repayments AS (
         asset_details
     )
     AND topics [0] :: STRING = '0x1a2a22cb034d26d1854bdc6666a5b91fe25efbbb5dcad3b0355478d6f5c362a1'
-    AND tx_status = 'SUCCESS'
+    AND tx_succeeded
   {% if is_incremental() %}
     AND modified_timestamp > (
         SELECT

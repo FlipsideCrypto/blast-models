@@ -7,6 +7,7 @@
 ) }}
 
 WITH asset_list AS (
+
     SELECT
         '0x44f33bc796f7d3df55040cd3c631628b560715c2' AS pool_address
     UNION ALL
@@ -37,7 +38,7 @@ juice_contracts AS (
     FROM
         contracts
     WHERE
-        NAME like 'Juice%Collateral%' 
+        NAME LIKE 'Juice%Collateral%'
 ),
 collateral_tokens AS (
     SELECT
@@ -77,8 +78,15 @@ tx_pull AS (
         topics,
         DATA,
         event_removed,
-        tx_status,
-        _log_id,
+        CASE
+            WHEN tx_status = 'SUCCESS' THEN TRUE
+            ELSE FALSE
+        END AS tx_succeeded,
+        CONCAT(
+            tx_hash :: STRING,
+            '-',
+            event_index :: STRING
+        ) AS _log_id,
         fact_event_logs_id,
         inserted_timestamp,
         modified_timestamp
@@ -87,16 +95,22 @@ tx_pull AS (
     WHERE
         origin_from_address = '0x0ee09b204ffebf9a1f14c99e242830a09958ba34'
         AND origin_to_address = '0x4e59b44847b379578588920ca78fbf26c0b4956c'
-        AND concat('0x',substr(topics[1], 27,40)) in (select pool_address from asset_list)
-        {% if is_incremental() %}
-        AND modified_timestamp > (
+        AND CONCAT('0x', SUBSTR(topics [1], 27, 40)) IN (
             SELECT
-                max(modified_timestamp)
+                pool_address
             FROM
-                {{ this }}
+                asset_list
         )
-        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-        {% endif %}
+
+{% if is_incremental() %}
+AND modified_timestamp > (
+    SELECT
+        MAX(modified_timestamp)
+    FROM
+        {{ this }}
+)
+AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+{% endif %}
 ),
 trace_pull AS (
     SELECT
@@ -117,7 +131,10 @@ trace_pull AS (
         DATA,
         tx_status,
         sub_traces,
-        trace_status,
+        CASE
+            WHEN trace_status = 'SUCCESS' THEN TRUE
+            ELSE FALSE
+        END AS trace_succeeded,
         error_reason,
         trace_index,
         fact_traces_id,
@@ -163,9 +180,9 @@ token AS (
         NAME AS token_name,
         decimals AS token_decimals,
         symbol AS token_symbol,
-        a.modified_timestamp
+        A.modified_timestamp
     FROM
-        trace_pull a
+        trace_pull A
         LEFT JOIN contracts
         ON address = token_address
     WHERE
@@ -184,7 +201,7 @@ underlying AS (
         topics,
         DATA,
         event_removed,
-        tx_status,
+        tx_succeeded,
         _log_id,
         fact_event_logs_id,
         inserted_timestamp,
@@ -220,9 +237,30 @@ underlying_asset AS (
 ),
 logs_pull AS (
     SELECT
-        *,
+        block_number,
+        block_timestamp,
+        tx_hash,
+        origin_function_signature,
+        origin_from_address,
+        origin_to_address,
+        event_index,
+        contract_address,
+        topics,
+        DATA,
         regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
         CONCAT('0x', SUBSTR(segmented_data [0], 25, 40)) AS contract_address,
+        event_removed,
+        CASE
+            WHEN tx_status = 'SUCCESS' THEN TRUE
+            ELSE FALSE
+        END AS tx_succeeded,
+        CONCAT(
+            tx_hash :: STRING,
+            '-',
+            event_index :: STRING
+        ) AS _log_id,
+        fact_event_logs_id,
+        inserted_timestamp,
         modified_timestamp
     FROM
         {{ ref('core__fact_event_logs') }}
@@ -249,8 +287,15 @@ get_underlying AS (
         topics,
         DATA,
         event_removed,
-        tx_status,
-        _log_id,
+        CASE
+            WHEN tx_status = 'SUCCESS' THEN TRUE
+            ELSE FALSE
+        END AS tx_succeeded,
+        CONCAT(
+            tx_hash :: STRING,
+            '-',
+            event_index :: STRING
+        ) AS _log_id,
         fact_event_logs_id,
         inserted_timestamp,
         modified_timestamp

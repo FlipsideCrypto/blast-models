@@ -43,7 +43,15 @@ juice_repayments AS (
     ) :: INTEGER AS repayed_amount_raw,
     'Juice' AS platform,
     modified_timestamp,
-    _log_id
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id
   FROM
     {{ ref('core__fact_event_logs') }} a
   WHERE
@@ -54,7 +62,7 @@ juice_repayments AS (
         asset_details
     )
     AND topics [0] :: STRING = '0x5c16de4f8b59bd9caf0f49a545f25819a895ed223294290b408242e72a594231'
-    AND tx_status = 'SUCCESS'
+    AND tx_succeeded
     {% if is_incremental() %}
         AND a.modified_timestamp > (
             SELECT

@@ -9,12 +9,20 @@
 WITH log_pull_1 AS (
 
     SELECT
-        l.tx_hash,
-        l.block_number,
-        l.block_timestamp,
-        l.contract_address,
-        l.modified_timestamp,
-        l._log_id
+        tx_hash,
+        block_number,
+        block_timestamp,
+        contract_address,
+        modified_timestamp,
+        CASE
+            WHEN tx_status = 'SUCCESS' THEN TRUE
+            ELSE FALSE
+        END AS tx_succeeded,
+        CONCAT(
+            tx_hash :: STRING,
+            '-',
+            event_index :: STRING
+        ) AS _log_id
     FROM
         {{ ref('core__fact_event_logs') }}
         l
@@ -23,13 +31,13 @@ WITH log_pull_1 AS (
         AND origin_from_address = '0x6315f65843e7582508e4f0aac20a7203e7b09f02'
 
 {% if is_incremental() %}
-AND l.modified_timestamp > (
+AND modified_timestamp > (
     SELECT
         MAX(modified_timestamp)
     FROM
         {{ this }}
 )
-AND l.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
 {% endif %}
 ),
 traces_pull AS (

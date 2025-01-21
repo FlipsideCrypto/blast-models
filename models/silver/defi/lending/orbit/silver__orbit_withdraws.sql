@@ -7,6 +7,7 @@
 ) }}
 
 WITH asset_details AS (
+
     SELECT
         token_address,
         token_name,
@@ -40,7 +41,15 @@ orbit_redemptions AS (
         CONCAT('0x', SUBSTR(segmented_data [0] :: STRING, 25, 40)) AS redeemer,
         'Orbit' AS platform,
         modified_timestamp,
-        _log_id
+        CASE
+            WHEN tx_status = 'SUCCESS' THEN TRUE
+            ELSE FALSE
+        END AS tx_succeeded,
+        CONCAT(
+            tx_hash :: STRING,
+            '-',
+            event_index :: STRING
+        ) AS _log_id
     FROM
         {{ ref('core__fact_event_logs') }}
     WHERE
@@ -51,16 +60,16 @@ orbit_redemptions AS (
                 asset_details
         )
         AND topics [0] :: STRING = '0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f'
-        AND tx_status = 'SUCCESS'
+        AND tx_succeeded
 
 {% if is_incremental() %}
-        AND modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+AND modified_timestamp > (
+    SELECT
+        MAX(modified_timestamp)
+    FROM
+        {{ this }}
+)
+AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
 {% endif %}
 ),
 orbit_combine AS (

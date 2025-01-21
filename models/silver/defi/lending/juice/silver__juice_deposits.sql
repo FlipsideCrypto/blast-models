@@ -38,13 +38,20 @@ deposit_logs AS (
     topics,
     DATA,
     event_removed,
-    tx_status,
-    _log_id,
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id,
     fact_event_logs_id,
     inserted_timestamp,
     modified_timestamp
   FROM
-    {{ ref('core__fact_event_logs') }} a
+    {{ ref('core__fact_event_logs') }} A
   WHERE
     (
       contract_address IN (
@@ -65,15 +72,16 @@ deposit_logs AS (
       '0xd88c5369d398bea6a7390a17ce98af43f4aacc78fd3587bc368993d98206a304',
       '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
     )
-    {% if is_incremental() %}
-        AND a.modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND a.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-    {% endif %}
+
+{% if is_incremental() %}
+AND A.modified_timestamp > (
+  SELECT
+    MAX(modified_timestamp)
+  FROM
+    {{ this }}
+)
+AND A.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+{% endif %}
 ),
 juice_deposits AS (
   SELECT
@@ -109,7 +117,7 @@ juice_deposits AS (
         asset_details
     )
     AND topics [0] :: STRING = '0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c'
-    AND tx_status = 'SUCCESS'
+    AND tx_succeeded
 ),
 juice_collateraldeposits AS (
   SELECT
@@ -140,7 +148,7 @@ juice_collateraldeposits AS (
         asset_details
     )
     AND topics [0] :: STRING = '0xd88c5369d398bea6a7390a17ce98af43f4aacc78fd3587bc368993d98206a304'
-    AND tx_status = 'SUCCESS'
+    AND tx_succeeded
 ),
 token_transfer AS (
   SELECT
@@ -170,7 +178,7 @@ token_transfer AS (
       FROM
         juice_deposits
     )
-    AND tx_status = 'SUCCESS'
+    AND tx_succeeded
 ),
 juice_combine AS (
   SELECT

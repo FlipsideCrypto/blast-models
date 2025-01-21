@@ -1,15 +1,16 @@
 {{ config(
   materialized = 'incremental',
   incremental_strategy = 'delete+insert',
-  unique_key = "block_number", 
+  unique_key = "block_number",
   cluster_by = ['block_timestamp::DATE'],
   tags = ['reorg','curated']
 ) }}
 
 WITH asset_details AS (
+
   SELECT
     token_address,
-    token_name, 
+    token_name,
     token_symbol,
     token_decimals,
     underlying_asset_address,
@@ -43,7 +44,15 @@ orbit_borrows AS (
     contract_address AS token,
     'Orbit' AS platform,
     modified_timestamp,
-    _log_id
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id
   FROM
     {{ ref('core__fact_event_logs') }}
   WHERE
@@ -54,16 +63,17 @@ orbit_borrows AS (
         asset_details
     )
     AND topics [0] :: STRING = '0x13ed6866d4e1ee6da46f845c46d7e54120883d75c5ea9a2dacc1c4ca8984ab80'
-    AND tx_status = 'SUCCESS'
-    {% if is_incremental() %}
-        AND modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-    {% endif %}
+    AND tx_succeeded
+
+{% if is_incremental() %}
+AND modified_timestamp > (
+  SELECT
+    MAX(modified_timestamp)
+  FROM
+    {{ this }}
+)
+AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+{% endif %}
 ),
 orbit_combine AS (
   SELECT
@@ -102,7 +112,7 @@ SELECT
   borrower,
   borrows_contract_address,
   borrows_symbol,
-  token as token_address,
+  token AS token_address,
   token_symbol,
   loan_amount_raw AS amount_unadj,
   loan_amount_raw / pow(

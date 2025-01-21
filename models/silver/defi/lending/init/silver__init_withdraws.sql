@@ -49,13 +49,21 @@ init_redemption AS (
         ) :: FLOAT AS redeemed_token_raw,
         'INIT Capital' AS platform,
         modified_timestamp,
-        _log_id
+        CASE
+            WHEN tx_status = 'SUCCESS' THEN TRUE
+            ELSE FALSE
+        END AS tx_succeeded,
+        CONCAT(
+            tx_hash :: STRING,
+            '-',
+            event_index :: STRING
+        ) AS _log_id,
     FROM
         {{ ref('core__fact_event_logs') }}
     WHERE
         contract_address = '0xa7d36f2106b5a5d528a7e2e7a3f436d703113a10'
         AND topics [0] :: STRING = '0x09c2e7b3728acfd99b3f71e4c1a55bcd48019bcc0e45c741f7c2f3393f49ea91'
-        AND tx_status = 'SUCCESS'
+        AND tx_succeeded
 
 {% if is_incremental() %}
 AND modified_timestamp > (
@@ -164,19 +172,18 @@ token_transfer2 AS (
                 tx_hash
             FROM
                 init_redemption
-        )
-        {# AND t1.tx_hash NOT IN (
-            SELECT
-                tx_hash
-            FROM
-                token_transfer1
-        ) #} --think we would want to remove this
-        AND t1.from_address IN (
-            SELECT
-                token_address
-            FROM
-                asset_details
-        )
+        ) {# AND t1.tx_hash NOT IN (
+    SELECT
+        tx_hash
+    FROM
+        token_transfer1
+) #} --think we would want to remove this
+AND t1.from_address IN (
+    SELECT
+        token_address
+    FROM
+        asset_details
+)
 ),
 token_transfer AS (
     SELECT
@@ -225,11 +232,15 @@ native_transfer AS (
         from_address AS wrapped_address,
         to_address,
         value_precise_raw AS eth_value,
+        CASE
+            WHEN trace_status = 'SUCCESS' THEN TRUE
+            ELSE FALSE
+        END AS trace_succeeded,
         'WETH' AS eth_symbol,
         18 AS eth_decimals,
         '0x4300000000000000000000000000000000000004' AS eth_address
     FROM
-        blast.core.fact_traces
+        {{ ref('core__fact_traces') }}
     WHERE
         from_address IN ('0xf683ce59521aa464066783d78e40cd9412f33d21')
         AND tx_hash IN (
@@ -239,7 +250,7 @@ native_transfer AS (
                 init_redemption
         )
         AND TYPE = 'CALL'
-        AND trace_status = 'SUCCESS'
+        AND trace_succeeded
         AND input = '0x'
 ),
 init_combine AS (

@@ -1,23 +1,24 @@
 {{ config(
-    materialized = 'incremental',
-    incremental_strategy = 'delete+insert',
-    unique_key = "block_number",
-    cluster_by = ['block_timestamp::DATE'],
-    tags = ['reorg','curated']
+  materialized = 'incremental',
+  incremental_strategy = 'delete+insert',
+  unique_key = "block_number",
+  cluster_by = ['block_timestamp::DATE'],
+  tags = ['reorg','curated']
 ) }}
 
 WITH asset_details AS (
-    SELECT 
-        token_address,
-        token_name,
-        token_symbol,
-        token_decimals,
-        underlying_asset_address,
-        underlying_name,
-        underlying_symbol,
-        underlying_decimals
-    FROM 
-        {{ ref('silver__orbit_asset_details') }}
+
+  SELECT
+    token_address,
+    token_name,
+    token_symbol,
+    token_decimals,
+    underlying_asset_address,
+    underlying_name,
+    underlying_symbol,
+    underlying_decimals
+  FROM
+    {{ ref('silver__orbit_asset_details') }}
 ),
 orbit_deposits AS (
   SELECT
@@ -40,7 +41,15 @@ orbit_deposits AS (
     CONCAT('0x', SUBSTR(segmented_data [0] :: STRING, 25, 40)) AS supplier,
     'Orbit' AS platform,
     modified_timestamp,
-    _log_id
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id
   FROM
     {{ ref('core__fact_event_logs') }}
   WHERE
@@ -51,16 +60,17 @@ orbit_deposits AS (
         asset_details
     )
     AND topics [0] :: STRING = '0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f'
-    AND tx_status = 'SUCCESS'
-    {% if is_incremental() %}
-        AND modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-    {% endif %}
+    AND tx_succeeded
+
+{% if is_incremental() %}
+AND modified_timestamp > (
+  SELECT
+    MAX(modified_timestamp)
+  FROM
+    {{ this }}
+)
+AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+{% endif %}
 ),
 orbit_combine AS (
   SELECT
@@ -89,7 +99,6 @@ orbit_combine AS (
     LEFT JOIN asset_details C
     ON b.token_address = C.token_address
 )
-
 SELECT
   block_number,
   block_timestamp,

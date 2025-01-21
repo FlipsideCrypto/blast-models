@@ -50,22 +50,31 @@ init_deposits AS (
     -- receipt token
     'INIT Capital' AS platform,
     modified_timestamp,
-    _log_id
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id
   FROM
     {{ ref('core__fact_event_logs') }}
   WHERE
     contract_address = '0xa7d36f2106b5a5d528a7e2e7a3f436d703113a10'
     AND topics [0] :: STRING = '0x722732c12c1c1ba3942aef8ee6e0357b01908558e142501c5f85b356c4dcadf8'
-    AND tx_status = 'SUCCESS'
-    {% if is_incremental() %}
-        AND modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-    {% endif %}
+    AND tx_succeeded
+
+{% if is_incremental() %}
+AND modified_timestamp > (
+  SELECT
+    MAX(modified_timestamp)
+  FROM
+    {{ this }}
+)
+AND modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+{% endif %}
 ),
 token_transfer1 AS (
   SELECT
@@ -91,7 +100,7 @@ token_transfer1 AS (
     t3
     ON t2.contract_address = t3.contract_address
   WHERE
-  t1.contract_address IN (
+    t1.contract_address IN (
       SELECT
         underlying_asset_address
       FROM
@@ -217,6 +226,10 @@ native_transfer AS (
     to_address,
     value_precise_raw AS eth_value,
     'WETH' AS eth_symbol,
+    CASE
+      WHEN trace_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS trace_succeeded,
     18 AS eth_decimals,
     '0x4300000000000000000000000000000000000004' AS eth_address
   FROM
@@ -230,7 +243,7 @@ native_transfer AS (
         init_deposits
     )
     AND TYPE = 'CALL'
-    AND trace_status = 'SUCCESS'
+    AND trace_succeeded
     AND input = '0x6ad481f3'
 ),
 init_combine AS (

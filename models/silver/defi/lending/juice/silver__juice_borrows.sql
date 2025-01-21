@@ -9,24 +9,24 @@
 WITH asset_details AS (
 
   SELECT
-        underlying_asset_address,
-        underlying_name,
-        underlying_decimals,
-        underlying_symbol,
-        pool_address,
-        token_address,
-        token_name,
-        token_decimals,
-        token_symbol,
-        debt_address,
-        debt_name,
-        debt_decimals,
-        debt_symbol
+    underlying_asset_address,
+    underlying_name,
+    underlying_decimals,
+    underlying_symbol,
+    pool_address,
+    token_address,
+    token_name,
+    token_decimals,
+    token_symbol,
+    debt_address,
+    debt_name,
+    debt_decimals,
+    debt_symbol
   FROM
     {{ ref('silver__juice_asset_details') }}
 ),
 juice_borrows AS (
-   SELECT
+  SELECT
     block_number,
     block_timestamp,
     tx_hash,
@@ -36,31 +36,46 @@ juice_borrows AS (
     origin_function_signature,
     contract_address,
     regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
-    CONCAT('0x', SUBSTR(topics[1] :: STRING, 25, 40)) AS borrower,
-    utils.udf_hex_to_int (segmented_data[0]) as loan_amount_raw,
+    CONCAT('0x', SUBSTR(topics [1] :: STRING, 25, 40)) AS borrower,
+    utils.udf_hex_to_int (
+      segmented_data [0]
+    ) AS loan_amount_raw,
     contract_address AS pool_address,
     'Juice' AS platform,
     modified_timestamp,
-    _log_id
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id
   FROM
-    {{ ref('core__fact_event_logs') }} a
-  LEFT JOIN 
-    asset_details on contract_address=pool_address
+    {{ ref('core__fact_event_logs') }} A
+    LEFT JOIN asset_details
+    ON contract_address = pool_address
   WHERE
-    contract_address IN (select pool_address from asset_details)
+    contract_address IN (
+      SELECT
+        pool_address
+      FROM
+        asset_details
+    )
     AND topics [0] :: STRING = '0xcbc04eca7e9da35cb1393a6135a199ca52e450d5e9251cbd99f7847d33a36750'
-    AND tx_status = 'SUCCESS'
-    {% if is_incremental() %}
-        AND a.modified_timestamp > (
-            SELECT
-                max(modified_timestamp)
-            FROM
-                {{ this }}
-        )
-        AND a.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
-    {% endif %}
-),
+    AND tx_succeeded
 
+{% if is_incremental() %}
+AND A.modified_timestamp > (
+  SELECT
+    MAX(modified_timestamp)
+  FROM
+    {{ this }}
+)
+AND A.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
+{% endif %}
+),
 juice_combine AS (
   SELECT
     block_number,
@@ -75,7 +90,7 @@ juice_combine AS (
     loan_amount_raw,
     C.underlying_asset_address AS borrows_contract_address,
     C.underlying_symbol AS borrows_symbol,
-    contract_address as token,
+    contract_address AS token,
     C.token_symbol,
     C.underlying_decimals,
     debt_name,
@@ -90,7 +105,6 @@ juice_combine AS (
     LEFT JOIN asset_details C
     ON b.contract_address = C.pool_address
 )
-
 SELECT
   block_number,
   block_timestamp,
@@ -103,9 +117,9 @@ SELECT
   borrower,
   borrows_contract_address,
   borrows_symbol,
-  debt_name as token_name,
-  debt_address as token_address,
-  debt_symbol as token_symbol,
+  debt_name AS token_name,
+  debt_address AS token_address,
+  debt_symbol AS token_symbol,
   loan_amount_raw AS amount_unadj,
   loan_amount_raw / pow(
     10,

@@ -51,13 +51,21 @@ init_repayments AS (
     contract_address AS token,
     'INIT Capital' AS platform,
     modified_timestamp,
-    _log_id
+    CASE
+      WHEN tx_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS tx_succeeded,
+    CONCAT(
+      tx_hash :: STRING,
+      '-',
+      event_index :: STRING
+    ) AS _log_id,
   FROM
     {{ ref('core__fact_event_logs') }}
   WHERE
     contract_address = '0xa7d36f2106b5a5d528a7e2e7a3f436d703113a10'
     AND topics [0] :: STRING = '0x77673b670822baca14a7caf6f8038f811649ab73e4c06083b0e58a53389bece7'
-    AND tx_status = 'SUCCESS'
+    AND tx_succeeded
 
 {% if is_incremental() %}
 AND modified_timestamp > (
@@ -76,6 +84,10 @@ native_transfer AS (
     to_address AS wrapped_address,
     value_precise_raw AS eth_value,
     'WETH' AS eth_symbol,
+    CASE
+      WHEN trace_status = 'SUCCESS' THEN TRUE
+      ELSE FALSE
+    END AS trace_succeeded,
     18 AS eth_decimals,
     '0x4300000000000000000000000000000000000004' AS eth_address
   FROM
@@ -89,7 +101,7 @@ native_transfer AS (
         init_repayments
     )
     AND TYPE = 'CALL'
-    AND trace_status = 'SUCCESS'
+    AND trace_succeeded
     AND input = '0x6ad481f3'
 ),
 token_transfer AS (
@@ -143,18 +155,33 @@ init_combine AS (
     origin_function_signature,
     posId,
     b.contract_address,
-    b.pool as protocol_market,
+    b.pool AS protocol_market,
     borrower,
-    repayer as payer,
+    repayer AS payer,
     amttorepay,
     sharesAmt,
     C.underlying_asset_address AS repay_contract_address,
     C.underlying_symbol AS repay_contract_symbol,
-    underlying_decimals as underlying_wrap_decimals,
-    COALESCE(eth_value, underlying_amount_raw ) as underlying_amount_raw,
-    COALESCE(eth_symbol, d.token_symbol, C.underlying_symbol) as underlying_symbol,
-    COALESCE(eth_decimals, d.token_decimals, C.underlying_decimals) as underlying_decimals,
-    COALESCE(eth_address, d.contract_address, C.underlying_asset_address) as underlying_asset_address,
+    underlying_decimals AS underlying_wrap_decimals,
+    COALESCE(
+      eth_value,
+      underlying_amount_raw
+    ) AS underlying_amount_raw,
+    COALESCE(
+      eth_symbol,
+      d.token_symbol,
+      C.underlying_symbol
+    ) AS underlying_symbol,
+    COALESCE(
+      eth_decimals,
+      d.token_decimals,
+      C.underlying_decimals
+    ) AS underlying_decimals,
+    COALESCE(
+      eth_address,
+      d.contract_address,
+      C.underlying_asset_address
+    ) AS underlying_asset_address,
     b.platform,
     b._log_id,
     b.modified_timestamp
@@ -162,8 +189,7 @@ init_combine AS (
     init_repayments b
     LEFT JOIN asset_details C
     ON b.pool = C.token_address
-    LEFT JOIN native_transfer
-    USING(tx_hash)
+    LEFT JOIN native_transfer USING(tx_hash)
     LEFT JOIN token_transfer d
     ON b.tx_hash = d.tx_hash
 )
@@ -182,8 +208,8 @@ SELECT
   payer,
   repay_contract_address,
   repay_contract_symbol,
-  underlying_asset_address as token_address,
-  underlying_symbol as token_symbol,
+  underlying_asset_address AS token_address,
+  underlying_symbol AS token_symbol,
   amtToRepay AS amount_unadj,
   amttorepay / pow(
     10,
