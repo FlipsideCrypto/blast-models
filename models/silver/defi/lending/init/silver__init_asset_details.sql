@@ -44,10 +44,7 @@ underlying AS (
         tx_hash,
         block_timestamp,
         block_number,
-        CASE
-            WHEN trace_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS trace_succeeded,
+        trace_succeeded,
         from_address AS token_address,
         to_address AS underlying_asset_address
     FROM
@@ -74,10 +71,7 @@ unwrapped AS (
     SELECT
         from_address AS underlying_asset_address,
         to_address AS underlying_unwrap_address,
-        CASE
-            WHEN trace_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS trace_succeeded
+        trace_succeeded
     FROM
         {{ ref('core__fact_traces') }}
     WHERE

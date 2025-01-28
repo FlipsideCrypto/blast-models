@@ -38,10 +38,7 @@ deposit_logs AS (
     topics,
     DATA,
     event_removed,
-    CASE
-      WHEN tx_status = 'SUCCESS' THEN TRUE
-      ELSE FALSE
-    END AS tx_succeeded,
+    tx_succeeded,
     CONCAT(
       tx_hash :: STRING,
       '-',

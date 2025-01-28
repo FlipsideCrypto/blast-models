@@ -24,10 +24,7 @@ WITH dispatch AS (
         CONCAT('0x', SUBSTR(topics [3] :: STRING, 27, 40)) AS dst_bridge_token,
         -- dst bridge token address, not recipient address
         DATA,
-        CASE
-            WHEN tx_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS tx_succeeded,
+        tx_succeeded,
         CONCAT(
             tx_hash :: STRING,
             '-',
@@ -58,10 +55,7 @@ dispatch_id AS (
         tx_hash,
         event_index,
         topics [1] :: STRING AS messageId,
-        CASE
-            WHEN tx_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS tx_succeeded,
+        tx_succeeded,
         CONCAT(
             tx_hash :: STRING,
             '-',
@@ -96,10 +90,7 @@ gas_payment AS (
         regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
         TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [0] :: STRING)) AS gasAmount,
         TRY_TO_NUMBER(utils.udf_hex_to_int(segmented_data [1] :: STRING)) AS payment,
-        CASE
-            WHEN tx_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS tx_succeeded,
+        tx_succeeded,
         CONCAT(
             tx_hash :: STRING,
             '-',
@@ -133,10 +124,7 @@ sent_transfer_remote AS (
         CONCAT('0x', SUBSTR(topics [2] :: STRING, 27, 40)) AS recipient,
         -- actual recipient
         TRY_TO_NUMBER(utils.udf_hex_to_int(DATA :: STRING)) AS amount,
-        CASE
-            WHEN tx_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS tx_succeeded,
+        tx_succeeded,
         CONCAT(
             tx_hash :: STRING,
             '-',

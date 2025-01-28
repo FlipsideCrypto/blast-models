@@ -13,7 +13,6 @@ SELECT
     block_timestamp,
     tx_position,
     trace_index,
-    identifier, --deprecate
     trace_address, --new column
     origin_from_address,
     origin_to_address,
@@ -26,12 +25,13 @@ SELECT
     amount_usd,
     native_transfers_id AS ez_native_transfers_id,
     SYSDATE() AS inserted_timestamp,
-    SYSDATE() AS modified_timestamp
+    SYSDATE() AS modified_timestamp,
+    identifier --deprecate
 FROM
     {{ ref('silver__native_transfers') }}
 
 {% if is_incremental() %}
-AND modified_timestamp > (
+WHERE modified_timestamp > (
     SELECT
         COALESCE(MAX(modified_timestamp), '1970-01-01' :: TIMESTAMP) AS modified_timestamp
     FROM
