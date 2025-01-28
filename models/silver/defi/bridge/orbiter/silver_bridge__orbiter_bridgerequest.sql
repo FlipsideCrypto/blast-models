@@ -27,10 +27,10 @@ WITH bridge_native AS (
         origin_from_address AS recipient,
         et.to_address AS bridge_address,
         trace_index,
-        native_transfers_id,
+        ez_native_transfers_id AS native_transfers_id,
         et.modified_timestamp
     FROM
-        {{ ref('silver__native_transfers') }}
+        {{ ref('core__ez_native_transfers') }}
         et
         INNER JOIN {{ ref('core__fact_transactions') }}
         tx

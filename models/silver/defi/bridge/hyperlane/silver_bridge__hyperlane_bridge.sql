@@ -153,7 +153,7 @@ token_transfer AS (
         tx_hash,
         contract_address AS token_address
     FROM
-        {{ ref('silver__transfers') }}
+        {{ ref('core__ez_token_transfers') }}
     WHERE
         tx_hash IN (
             SELECT
