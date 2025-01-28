@@ -16,7 +16,6 @@ WITH base AS (
         from_address AS origin_from_address,
         to_address AS origin_to_address,
         tx_status,
-        {# position AS tx_position, --new column #}
         logs,
         _inserted_timestamp
     FROM
@@ -40,7 +39,6 @@ flat_logs AS (
         origin_from_address,
         origin_to_address,
         tx_status,
-        {# tx_position, #}
         VALUE :address :: STRING AS contract_address,
         VALUE :blockHash :: STRING AS block_hash,
         VALUE :data :: STRING AS DATA,
@@ -65,7 +63,6 @@ new_records AS (
         l.origin_to_address,
         txs.origin_function_signature,
         l.tx_status,
-        {# l.tx_position, #}
         l.contract_address,
         l.block_hash,
         l.data,
@@ -110,7 +107,6 @@ missing_data AS (
         t.origin_to_address,
         txs.origin_function_signature,
         t.tx_status,
-        {# t.tx_position, #}
         t.contract_address,
         t.block_hash,
         t.data,
@@ -144,7 +140,6 @@ FINAL AS (
         origin_to_address,
         origin_function_signature,
         tx_status,
-        {# tx_position, #}
         contract_address,
         block_hash,
         DATA,
@@ -167,7 +162,6 @@ SELECT
     origin_to_address,
     origin_function_signature,
     tx_status,
-    {# tx_position, #}
     contract_address,
     block_hash,
     DATA,
