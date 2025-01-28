@@ -65,12 +65,6 @@ This column is being removed for standardization purposes and will be replaced w
 
 {% enddocs %}
 
-{% docs evm_column_deprecation_notice_full_decoded_log %}
-
-This column is being deprecated for standardization purposes. Please update your queries to use the `full_decoded_data` column instead by February 3, 2025.
-
-{% enddocs %}
-
 {% docs evm_table_deprecation_notice %}
 
 This table is being deprecated for standardization purposes. Please update your queries by February 3, 2025.

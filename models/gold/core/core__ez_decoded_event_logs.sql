@@ -26,7 +26,7 @@ SELECT
         ELSE FALSE
     END AS tx_succeeded, --new column
     event_name,
-    decoded_data AS full_decoded_data, --new column
+    decoded_data AS full_decoded_log,
     decoded_flat AS decoded_log,
     token_name AS contract_name,
     COALESCE (
@@ -37,7 +37,6 @@ SELECT
     ) AS ez_decoded_event_logs_id,
     GREATEST(COALESCE(l.inserted_timestamp, '2000-01-01'), COALESCE(C.inserted_timestamp, '2000-01-01')) AS inserted_timestamp,
     GREATEST(COALESCE(l.modified_timestamp, '2000-01-01'), COALESCE(C.modified_timestamp, '2000-01-01')) AS modified_timestamp,
-    decoded_data AS full_decoded_log, --deprecate
     tx_status --deprecate
 FROM
     {{ ref('silver__decoded_logs') }}

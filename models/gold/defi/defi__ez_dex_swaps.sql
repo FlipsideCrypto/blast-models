@@ -53,9 +53,9 @@ SELECT
     token_out,
     symbol_in,
     symbol_out,
-    _log_id,
     complete_dex_swaps_id AS ez_dex_swaps_id,
     inserted_timestamp,
-    modified_timestamp
+    modified_timestamp,
+    _log_id --deprecate
 FROM
     {{ ref('silver_dex__complete_dex_swaps') }}
