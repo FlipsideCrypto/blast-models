@@ -44,6 +44,12 @@ There is more information on how to use dbt docs in the last section of this doc
 ### DeFi Tables (blast.defi)
 - [ez_dex_swaps](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.defi__ez_dex_swaps)
 - [dim_dex_liquidity_pools](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.defi__dim_dex_liquidity_pools)
+- [ez_bridge_activity](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.defi__ez_bridge_activity)
+- [ez_lending_borrows](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.defi__ez_lending_borrows) 
+- [ez_lending_deposits](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.defi__ez_lending_deposits)
+- [ez_lending_liquidations](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.defi__ez_lending_liquidations)
+- [ez_lending_repayments](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.defi__ez_lending_repayments)
+- [ez_lending_withdraws](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.defi__ez_lending_withdraws)
 
 ### Stats Tables (blast.stats)
 - [ez_core_metrics_hourly](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.stats__ez_core_metrics_hourly)
@@ -59,6 +65,7 @@ There is more information on how to use dbt docs in the last section of this doc
 - [ez_edge_trades](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_edge_trades)
 - [ez_market_depth_stats](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_market_depth_stats)
 - [ez_market_stats](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_market_stats)
+- [ez_money_markets](https://flipsidecrypto.github.io/blast-models/#!/model/model.blast_models.blitz__ez_money_markets)
 
 ## **Helpful User-Defined Functions (UDFs)**
 

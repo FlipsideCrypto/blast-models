@@ -71,6 +71,7 @@ AND l.modified_timestamp >= (
     FROM
         {{ this }}
 )
+AND l._inserted_timestamp >= SYSDATE() - INTERVAL '7 day'
 {% endif %}
 )
 SELECT

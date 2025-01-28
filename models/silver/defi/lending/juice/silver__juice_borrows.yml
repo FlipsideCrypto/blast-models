@@ -1,0 +1,89 @@
+version: 2
+models:
+  - name: silver__juice_borrows
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - _LOG_ID
+    columns:
+      - name: BLOCK_NUMBER
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+      - name: BLOCK_TIMESTAMP
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 3
+              warn_if: ">3"
+              error_if: ">14"
+      - name: TX_HASH
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+      - name: EVENT_INDEX
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+      - name: ORIGIN_FROM_ADDRESS
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+      - name: ORIGIN_TO_ADDRESS
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+      - name: ORIGIN_FUNCTION_SIGNATURE
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+      - name: CONTRACT_ADDRESS
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+      - name: BORROWER
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+      - name: BORROWS_CONTRACT_ADDRESS
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+      - name: BORROWS_SYMBOL
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+      - name: TOKEN_ADDRESS
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+      - name: TOKEN_SYMBOL
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+      - name: AMOUNT_UNADJ
+        tests:
+          - not_null:
+              error_if: ">10"
+              warn_if: ">0"
+      - name: AMOUNT
+        tests:
+          - dbt_expectations.expect_column_values_to_be_in_type_list:
+              column_type_list:
+                - decimal
+                - float
