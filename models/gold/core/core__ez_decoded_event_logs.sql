@@ -8,7 +8,7 @@ SELECT
     block_number,
     block_timestamp,
     tx_hash,
-    {# tx_position,  --new column, requires FR on silver.decoded_logs #}
+    {# tx_position,  --new column, requires FR on silver.decoded_logs (FR during migration to fsc-evm v4) #}
     event_index,
     contract_address,
     topics,

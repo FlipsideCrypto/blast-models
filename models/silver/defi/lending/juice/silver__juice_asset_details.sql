@@ -127,9 +127,12 @@ trace_pull AS (
         input,
         output,
         TYPE,
-        identifier,
+        CONCAT(
+            TYPE,
+            '_',
+            trace_address
+        ) AS identifier,
         DATA,
-        tx_status,
         sub_traces,
         CASE
             WHEN trace_status = 'SUCCESS' THEN TRUE

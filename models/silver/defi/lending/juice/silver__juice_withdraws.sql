@@ -37,7 +37,6 @@ withdraw_logs AS (
         contract_address,
         DATA,
         topics,
-        tx_status,
         modified_timestamp,
         CASE
             WHEN tx_status = 'SUCCESS' THEN TRUE

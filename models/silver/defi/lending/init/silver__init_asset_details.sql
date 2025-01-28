@@ -53,7 +53,11 @@ underlying AS (
     FROM
         {{ ref('core__fact_traces') }}
     WHERE
-        identifier = 'CALL_0_1'
+        CONCAT(
+            TYPE,
+            '_',
+            trace_address
+        ) = 'CALL_0_1'
         AND LEFT(
             input,
             10
@@ -77,7 +81,11 @@ unwrapped AS (
     FROM
         {{ ref('core__fact_traces') }}
     WHERE
-        identifier = 'CALL_0_0'
+        CONCAT(
+            TYPE,
+            '_',
+            trace_address
+        ) = 'CALL_0_0'
         AND LEFT(
             input,
             10

@@ -32,7 +32,7 @@ WITH bridge_native AS (
     FROM
         {{ ref('silver__native_transfers') }}
         et
-        INNER JOIN {{ ref('silver__transactions') }}
+        INNER JOIN {{ ref('core__fact_transactions') }}
         tx
         ON et.block_number = tx.block_number
         AND et.tx_hash = tx.tx_hash
