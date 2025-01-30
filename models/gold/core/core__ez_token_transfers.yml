@@ -40,8 +40,6 @@ models:
         description: '{{ doc("blast_symbol") }}'
       - name: TOKEN_PRICE
         description: '{{ doc("blast_transfer_token_price") }}'
-      - name: _INSERTED_TIMESTAMP
-        description: '{{ doc("internal_column") }}'
       - name: EZ_TOKEN_TRANSFERS_ID
         description: '{{ doc("pk") }}'   
       - name: INSERTED_TIMESTAMP
