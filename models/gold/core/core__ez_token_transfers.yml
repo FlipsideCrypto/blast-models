@@ -39,7 +39,9 @@ models:
       - name: SYMBOL
         description: '{{ doc("blast_symbol") }}'
       - name: TOKEN_PRICE
-        description: '{{ doc("blast_transfer_token_price") }}'
+        description: '{{ doc("evm_column_deprecation_notice_token_price") }}'
+      - name: _INSERTED_TIMESTAMP
+        description: '{{ doc("evm_column_deprecation_notice_inserted_timestamp") }}'
       - name: EZ_TOKEN_TRANSFERS_ID
         description: '{{ doc("pk") }}'   
       - name: INSERTED_TIMESTAMP
