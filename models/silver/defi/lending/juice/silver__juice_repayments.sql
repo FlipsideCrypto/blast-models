@@ -43,10 +43,7 @@ juice_repayments AS (
     ) :: INTEGER AS repayed_amount_raw,
     'Juice' AS platform,
     modified_timestamp,
-    CASE
-      WHEN tx_status = 'SUCCESS' THEN TRUE
-      ELSE FALSE
-    END AS tx_succeeded,
+    tx_succeeded,
     CONCAT(
       tx_hash :: STRING,
       '-',

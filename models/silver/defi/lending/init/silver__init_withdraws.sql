@@ -49,10 +49,7 @@ init_redemption AS (
         ) :: FLOAT AS redeemed_token_raw,
         'INIT Capital' AS platform,
         modified_timestamp,
-        CASE
-            WHEN tx_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS tx_succeeded,
+        tx_succeeded,
         CONCAT(
             tx_hash :: STRING,
             '-',
@@ -232,10 +229,7 @@ native_transfer AS (
         from_address AS wrapped_address,
         to_address,
         value_precise_raw AS eth_value,
-        CASE
-            WHEN trace_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS trace_succeeded,
+        trace_succeeded,
         'WETH' AS eth_symbol,
         18 AS eth_decimals,
         '0x4300000000000000000000000000000000000004' AS eth_address

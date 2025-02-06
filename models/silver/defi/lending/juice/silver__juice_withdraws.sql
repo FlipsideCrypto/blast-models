@@ -37,12 +37,8 @@ withdraw_logs AS (
         contract_address,
         DATA,
         topics,
-        tx_status,
         modified_timestamp,
-        CASE
-            WHEN tx_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS tx_succeeded,
+        tx_succeeded,
         CONCAT(
         tx_hash :: STRING,
         '-',

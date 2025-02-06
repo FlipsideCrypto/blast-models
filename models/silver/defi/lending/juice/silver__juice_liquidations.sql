@@ -51,10 +51,7 @@ juice_liquidations AS (
     ) :: INTEGER AS debtamountneeded_raw,
     'Juice' AS platform,
     l.modified_timestamp,
-    CASE
-      WHEN tx_status = 'SUCCESS' THEN TRUE
-      ELSE FALSE
-    END AS tx_succeeded,
+    tx_succeeded,
     CONCAT(
       tx_hash :: STRING,
       '-',
@@ -87,10 +84,7 @@ token_transfer AS (
     tx_hash,
     utils.udf_hex_to_int(DATA) AS seizeTokens_raw,
     event_index,
-    CASE
-      WHEN tx_status = 'SUCCESS' THEN TRUE
-      ELSE FALSE
-    END AS tx_succeeded,
+    tx_succeeded,
     CONCAT(
       tx_hash :: STRING,
       '-',
@@ -130,10 +124,7 @@ debt_transfer AS (
     debt_name,
     debt_address AS debt_token,
     debt_symbol AS debt_token_symbol,
-    CASE
-      WHEN tx_status = 'SUCCESS' THEN TRUE
-      ELSE FALSE
-    END AS tx_succeeded,
+    tx_succeeded,
     CONCAT(
       tx_hash :: STRING,
       '-',

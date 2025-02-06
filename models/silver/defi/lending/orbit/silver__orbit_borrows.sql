@@ -44,10 +44,7 @@ orbit_borrows AS (
     contract_address AS token,
     'Orbit' AS platform,
     modified_timestamp,
-    CASE
-      WHEN tx_status = 'SUCCESS' THEN TRUE
-      ELSE FALSE
-    END AS tx_succeeded,
+    tx_succeeded,
     CONCAT(
       tx_hash :: STRING,
       '-',

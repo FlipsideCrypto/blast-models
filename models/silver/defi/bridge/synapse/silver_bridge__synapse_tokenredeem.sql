@@ -24,10 +24,7 @@ WITH base_evt AS (
         topics [3] :: STRING AS topic_3,
         DATA,
         regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
-        CASE
-            WHEN tx_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS tx_succeeded,
+        tx_succeeded,
         CONCAT(
             tx_hash :: STRING,
             '-',

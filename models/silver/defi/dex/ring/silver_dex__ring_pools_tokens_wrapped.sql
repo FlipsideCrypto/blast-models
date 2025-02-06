@@ -16,14 +16,18 @@ SELECT
     utils.udf_hex_to_int(
         segmented_data [1] :: STRING
     ) :: INTEGER AS asset_id,
-    _log_id,
-    _inserted_timestamp
+    CONCAT(
+        tx_hash,
+        '-',
+        event_index
+    ) AS _log_id,
+    modified_timestamp AS _inserted_timestamp
 FROM
-    {{ ref('silver__logs') }}
+    {{ ref('core__fact_event_logs') }}
 WHERE
     contract_address = '0x455b20131d59f01d082df1225154fda813e8cee9' --FewFactory
     AND topics [0] :: STRING = '0x940398321949af993516f7d144a2b9f43100b1de59365ba376e2b458d840c091' --WrappedTokenCreated
-    AND tx_status = 'SUCCESS'
+    AND tx_succeeded
 
 {% if is_incremental() %}
 AND _inserted_timestamp >= (

@@ -49,10 +49,7 @@ WITH base_evt AS (
         CONCAT('0x', SUBSTR(segmented_data [7] :: STRING, 25, 40)) AS recipient,
         CONCAT('0x', SUBSTR(segmented_data [8] :: STRING, 25, 40)) AS exclusiveRelayer,
         segmented_data [9] :: STRING AS message,
-        CASE
-            WHEN tx_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS tx_succeeded,
+        tx_succeeded,
         CONCAT(
             tx_hash :: STRING,
             '-',

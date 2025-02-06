@@ -51,10 +51,7 @@ init_repayments AS (
     contract_address AS token,
     'INIT Capital' AS platform,
     modified_timestamp,
-    CASE
-      WHEN tx_status = 'SUCCESS' THEN TRUE
-      ELSE FALSE
-    END AS tx_succeeded,
+    tx_succeeded,
     CONCAT(
       tx_hash :: STRING,
       '-',
@@ -84,10 +81,7 @@ native_transfer AS (
     to_address AS wrapped_address,
     value_precise_raw AS eth_value,
     'WETH' AS eth_symbol,
-    CASE
-      WHEN trace_status = 'SUCCESS' THEN TRUE
-      ELSE FALSE
-    END AS trace_succeeded,
+    trace_succeeded,
     18 AS eth_decimals,
     '0x4300000000000000000000000000000000000004' AS eth_address
   FROM

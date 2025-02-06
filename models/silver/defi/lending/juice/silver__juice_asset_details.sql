@@ -78,10 +78,7 @@ tx_pull AS (
         topics,
         DATA,
         event_removed,
-        CASE
-            WHEN tx_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS tx_succeeded,
+        tx_succeeded,
         CONCAT(
             tx_hash :: STRING,
             '-',
@@ -127,14 +124,14 @@ trace_pull AS (
         input,
         output,
         TYPE,
-        identifier,
+        CONCAT(
+            TYPE,
+            '_',
+            trace_address
+        ) AS identifier,
         DATA,
-        tx_status,
         sub_traces,
-        CASE
-            WHEN trace_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS trace_succeeded,
+        trace_succeeded,
         error_reason,
         trace_index,
         fact_traces_id,
@@ -250,10 +247,7 @@ logs_pull AS (
         regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
         CONCAT('0x', SUBSTR(segmented_data [0], 25, 40)) AS contract_address,
         event_removed,
-        CASE
-            WHEN tx_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS tx_succeeded,
+        tx_succeeded,
         CONCAT(
             tx_hash :: STRING,
             '-',
@@ -287,10 +281,7 @@ get_underlying AS (
         topics,
         DATA,
         event_removed,
-        CASE
-            WHEN tx_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS tx_succeeded,
+        tx_succeeded,
         CONCAT(
             tx_hash :: STRING,
             '-',

@@ -13,14 +13,8 @@ WITH oft_asset_contract_creation AS (
         block_timestamp,
         tx_hash,
         from_address AS oft_address,
-        CASE
-            WHEN tx_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS tx_succeeded,
-        CASE
-            WHEN trace_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS trace_succeeded,
+        tx_succeeded,
+        trace_succeeded,
         modified_timestamp
     FROM
         {{ ref('core__fact_traces') }}
@@ -57,14 +51,8 @@ oft_asset_base_token AS (
         tx_hash,
         from_address AS wrap_address,
         to_address AS underlying_address,
-        CASE
-            WHEN tx_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS tx_succeeded,
-        CASE
-            WHEN trace_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS trace_succeeded,
+        tx_succeeded,
+        trace_succeeded,
         modified_timestamp
     FROM
         {{ ref('core__fact_traces') }}

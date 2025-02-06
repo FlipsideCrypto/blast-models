@@ -22,10 +22,10 @@ SELECT
     amount_usd,
     decimals,
     symbol,
-    token_price,
-    _inserted_timestamp,
     transfers_id AS ez_token_transfers_id,
     inserted_timestamp,
-    modified_timestamp
+    modified_timestamp,
+    _inserted_timestamp, --deprecate
+    token_price --deprecate
 FROM
     {{ ref('silver__transfers') }}

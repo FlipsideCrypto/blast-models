@@ -51,10 +51,7 @@ init_liquidations AS (
     contract_address AS token,
     'INIT Capital' AS platform,
     modified_timestamp,
-    CASE
-      WHEN tx_status = 'SUCCESS' THEN TRUE
-      ELSE FALSE
-    END AS tx_succeeded,
+    tx_succeeded,
     CONCAT(
       tx_hash :: STRING,
       '-',
@@ -132,10 +129,7 @@ position_owner AS (
     utils.udf_hex_to_int(
       topics [2] :: STRING
     ) :: STRING AS posId, -- using string as it handles better than float
-    CASE
-      WHEN tx_status = 'SUCCESS' THEN TRUE
-      ELSE FALSE
-    END AS tx_succeeded,
+    tx_succeeded,
     CONCAT(
       tx_hash :: STRING,
       '-',
