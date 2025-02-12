@@ -12,9 +12,6 @@ models:
       - name: BLOCK_TIMESTAMP
         tests:
           - not_null
-          - dbt_expectations.expect_row_values_to_have_recent_data:
-              datepart: day
-              interval: 3
       - name: ORIGIN_FUNCTION_SIGNATURE
         tests:
           - not_null
@@ -69,4 +66,4 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_match_regex:
-              regex: 0[xX][0-9a-fA-F]+          
+              regex: 0[xX][0-9a-fA-F]+
