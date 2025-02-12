@@ -19,9 +19,26 @@ WITH health_groups AS (
 ),
 logs AS (
     SELECT
-        *
+        block_number,
+        block_timestamp,
+        tx_hash,
+        event_index,
+        contract_address,
+        topics,
+        DATA,
+        event_removed,
+        origin_from_address,
+        origin_to_address,
+        origin_function_signature,
+        tx_succeeded,
+        CONCAT(
+            tx_hash :: STRING,
+            '-',
+            event_index :: STRING
+        ) AS _log_id,
+        modified_timestamp AS _inserted_timestamp
     FROM
-        {{ ref('silver__logs') }}
+        {{ ref('core__fact_event_logs') }}
     WHERE
         topics [0] :: STRING = '0x494f937f5cc892f798248aa831acfb4ad7c4bf35edd8498c5fb431ce1e38b035'
         AND contract_address = LOWER('0xC748532C202828969b2Ee68E0F8487E69cC1d800')

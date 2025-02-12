@@ -41,10 +41,7 @@ orbit_deposits AS (
     CONCAT('0x', SUBSTR(segmented_data [0] :: STRING, 25, 40)) AS supplier,
     'Orbit' AS platform,
     modified_timestamp,
-    CASE
-      WHEN tx_status = 'SUCCESS' THEN TRUE
-      ELSE FALSE
-    END AS tx_succeeded,
+    tx_succeeded,
     CONCAT(
       tx_hash :: STRING,
       '-',

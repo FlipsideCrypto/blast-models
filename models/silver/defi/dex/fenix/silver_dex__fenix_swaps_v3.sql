@@ -45,10 +45,14 @@ WITH swaps_base AS (
         pool_address,
         tick_spacing,
         fee,
-        l._log_id,
-        l._inserted_timestamp
+        CONCAT(
+            l.tx_hash :: STRING,
+            '-',
+            l.event_index :: STRING
+        ) AS _log_id,
+        l.modified_timestamp AS _inserted_timestamp
     FROM
-        {{ ref('silver__logs') }}
+        {{ ref('core__fact_event_logs') }}
         l
         INNER JOIN {{ ref('silver_dex__fenix_pools_v3') }}
         p
@@ -56,10 +60,10 @@ WITH swaps_base AS (
     WHERE
         l.block_timestamp :: DATE >= '2024-01-01'
         AND topics [0] :: STRING = '0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67'
-        AND tx_status = 'SUCCESS'
+        AND tx_succeeded
 
 {% if is_incremental() %}
-AND l._inserted_timestamp >= (
+AND l.modified_timestamp >= (
     SELECT
         MAX(
             _inserted_timestamp
@@ -67,7 +71,7 @@ AND l._inserted_timestamp >= (
     FROM
         {{ this }}
 )
-AND l._inserted_timestamp >= SYSDATE() - INTERVAL '7 day'
+AND l.modified_timestamp >= SYSDATE() - INTERVAL '7 day'
 {% endif %}
 )
 SELECT

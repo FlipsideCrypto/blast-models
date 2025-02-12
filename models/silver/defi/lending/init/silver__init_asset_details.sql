@@ -44,16 +44,17 @@ underlying AS (
         tx_hash,
         block_timestamp,
         block_number,
-        CASE
-            WHEN trace_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS trace_succeeded,
+        trace_succeeded,
         from_address AS token_address,
         to_address AS underlying_asset_address
     FROM
         {{ ref('core__fact_traces') }}
     WHERE
-        identifier = 'CALL_0_1'
+        CONCAT(
+            TYPE,
+            '_',
+            trace_address
+        ) = 'CALL_0_1'
         AND LEFT(
             input,
             10
@@ -70,14 +71,15 @@ unwrapped AS (
     SELECT
         from_address AS underlying_asset_address,
         to_address AS underlying_unwrap_address,
-        CASE
-            WHEN trace_status = 'SUCCESS' THEN TRUE
-            ELSE FALSE
-        END AS trace_succeeded
+        trace_succeeded
     FROM
         {{ ref('core__fact_traces') }}
     WHERE
-        identifier = 'CALL_0_0'
+        CONCAT(
+            TYPE,
+            '_',
+            trace_address
+        ) = 'CALL_0_0'
         AND LEFT(
             input,
             10
