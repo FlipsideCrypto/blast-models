@@ -81,7 +81,7 @@ WITH base_evt AS (
         ) AS _log_id,
         modified_timestamp
     FROM
-        {{ ref('core__ez_decoded_event_logs') }}
+        {{ ref('core__fact_event_logs') }}
     WHERE
         topic_0 IN (
             '0x32ed1a409ef04c7b0227189c3a103dc5ac10e775a15b785dcc510201f7c25ad3',
