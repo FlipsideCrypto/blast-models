@@ -86,3 +86,6 @@ vars:
       EXTERNAL_FUNCTION_URI: 42gzudc5si.execute-api.us-east-1.amazonaws.com/prod/
   
   #### STREAMLINE 2.0 END ####
+
+### FSC_EVM
+  GLOBAL_PROD_DB_NAME: 'blast'
