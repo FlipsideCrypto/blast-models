@@ -73,7 +73,6 @@ WITH base_evt AS (
         ) AS relayerFeePct,
         segmented_data [10] :: STRING AS message,
         event_removed,
-        tx_succeeded,
         CONCAT(
             tx_hash :: STRING,
             '-',
@@ -110,7 +109,6 @@ SELECT
     event_index,
     topics,
     event_name,
-    tx_succeeded,
     contract_address AS bridge_address,
     NAME AS platform,
     depositor AS sender,
