@@ -17,39 +17,62 @@ WITH base_evt AS (
         origin_to_address,
         contract_address,
         'across-v3' AS NAME,
+        event_index,
+        topic_0,
+        CASE
+            WHEN topic_0 = '0x32ed1a409ef04c7b0227189c3a103dc5ac10e775a15b785dcc510201f7c25ad3' THEN 'FundsDeposited'
+            WHEN topic_0 = '0xa123dc29aebf7d0c3322c8eeb5b999e859f39937950ed31056532713d0de396f' THEN 'V3FundsDeposited'
+        END AS event_name,
         topics,
         DATA,
-        event_index,
-        event_name,
-        utils.udf_hex_to_int(
-            topics [1] :: STRING
+        regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                topics [1] :: STRING
+            )
         ) AS destinationChainId,
-        utils.udf_hex_to_int(
-            topics [2] :: STRING
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                topics [2] :: STRING
+            )
         ) AS depositId,
         CONCAT('0x', SUBSTR(topics [3] :: STRING, 27, 40)) AS depositor,
-        regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data,
         CONCAT('0x', SUBSTR(segmented_data [0] :: STRING, 25, 40)) AS inputToken,
         CONCAT('0x', SUBSTR(segmented_data [1] :: STRING, 25, 40)) AS outputToken,
-        TRY_TO_NUMBER(utils.udf_hex_to_int(
-            segmented_data [2] :: STRING
-        )) AS inputAmount,
-        TRY_TO_NUMBER(utils.udf_hex_to_int(
-            segmented_data [3] :: STRING
-        )) AS outputAmount,
-        utils.udf_hex_to_int(
-            segmented_data [4] :: STRING
-        ) AS quotedTimestamp,
-        utils.udf_hex_to_int(
-            segmented_data [5] :: STRING
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                segmented_data [2] :: STRING
+            )
+        ) AS inputAmount,
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                segmented_data [3] :: STRING
+            )
+        ) AS outputAmount,
+        TRY_TO_TIMESTAMP(
+            utils.udf_hex_to_int(
+                segmented_data [4] :: STRING
+            )
+        ) AS quoteTimestamp,
+        TRY_TO_TIMESTAMP(
+            utils.udf_hex_to_int(
+                segmented_data [5] :: STRING
+            )
         ) AS fillDeadline,
-        utils.udf_hex_to_int(
-            segmented_data [6] :: STRING
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                segmented_data [6] :: STRING
+            )
         ) AS exclusivityDeadline,
         CONCAT('0x', SUBSTR(segmented_data [7] :: STRING, 25, 40)) AS recipient,
         CONCAT('0x', SUBSTR(segmented_data [8] :: STRING, 25, 40)) AS exclusiveRelayer,
-        segmented_data [9] :: STRING AS message,
-        tx_succeeded,
+        TRY_TO_NUMBER(
+            utils.udf_hex_to_int(
+                segmented_data [9] :: STRING
+            )
+        ) AS relayerFeePct,
+        segmented_data [10] :: STRING AS message,
+        event_removed,
         CONCAT(
             tx_hash :: STRING,
             '-',
@@ -57,9 +80,12 @@ WITH base_evt AS (
         ) AS _log_id,
         modified_timestamp
     FROM
-        {{ ref('core__ez_decoded_event_logs') }}
+        {{ ref('core__fact_event_logs') }}
     WHERE
-        topics [0] :: STRING = '0xa123dc29aebf7d0c3322c8eeb5b999e859f39937950ed31056532713d0de396f'
+        topic_0 IN (
+            '0x32ed1a409ef04c7b0227189c3a103dc5ac10e775a15b785dcc510201f7c25ad3',
+            '0xa123dc29aebf7d0c3322c8eeb5b999e859f39937950ed31056532713d0de396f'
+        )
         AND contract_address = '0x2d509190ed0172ba588407d4c2df918f955cc6e1'
         AND tx_succeeded
 
@@ -83,7 +109,6 @@ SELECT
     event_index,
     topics,
     event_name,
-    tx_succeeded,
     contract_address AS bridge_address,
     NAME AS platform,
     depositor AS sender,
