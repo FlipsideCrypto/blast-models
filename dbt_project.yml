@@ -80,10 +80,17 @@ vars:
     dev:
       API_INTEGRATION: AWS_BLAST_API_DEV
       EXTERNAL_FUNCTION_URI: y9d0tuavh6.execute-api.us-east-1.amazonaws.com/stg/
+      ROLES:
+        - AWS_LAMBDA_BLAST_API
+        - INTERNAL_DEV
 
     prod:
       API_INTEGRATION: AWS_BLAST_API
       EXTERNAL_FUNCTION_URI: 42gzudc5si.execute-api.us-east-1.amazonaws.com/prod/
+      ROLES:
+        - AWS_LAMBDA_BLAST_API
+        - INTERNAL_DEV
+        - DBT_CLOUD_BLAST
   
   #### STREAMLINE 2.0 END ####
 

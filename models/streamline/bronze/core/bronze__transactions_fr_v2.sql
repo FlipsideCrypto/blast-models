@@ -1,6 +1,6 @@
 {# Set variables #}
 {% set source_name = 'TRANSACTIONS' %}
-{% set source_version = 'V2' if var('GLOBAL_USES_STREAMLINE_V1', false) else '' %}
+{% set source_version = 'V2'%}
 {% set model_type = 'FR' %}
 
 {%- set default_vars = set_default_variables_bronze(source_name, model_type) -%}
@@ -12,14 +12,8 @@
 {% set uses_receipts_by_hash = default_vars['uses_receipts_by_hash'] %}
 
 {# Log configuration details #}
-{{ log_bronze_details(
-    source_name = source_name,
-    source_version = source_version,
-    model_type = model_type,
-    partition_function = partition_function,
-    partition_join_key = partition_join_key,
-    block_number = block_number,
-    uses_receipts_by_hash = uses_receipts_by_hash
+{{ log_model_details(
+    vars = default_vars
 ) }}
 
 {# Set up dbt configuration #}
