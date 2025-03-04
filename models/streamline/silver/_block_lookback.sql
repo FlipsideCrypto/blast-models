@@ -3,7 +3,7 @@
 ) }}
 
 SELECT
-    COALESCE(MIN(block_number), 0) AS block_number
+    MIN(block_number) AS block_number
 FROM
     {{ ref("silver__blocks") }}
 WHERE
