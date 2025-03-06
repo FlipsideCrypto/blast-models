@@ -8,9 +8,7 @@
     where _inserted_timestamp::date = sysdate()::date
     and dayname(sysdate()) <> 'Sat'
 {% endset %}
-
 {% set results = run_query(check_for_new_user_abis_query) %}
-
 {% if execute %}
     {% set new_user_abis = results.columns[0].values()[0] %}
     
