@@ -12,6 +12,8 @@ sources:
       - name: traces
       - name: decoded_logs
       - name: confirm_blocks
+      - name: blocks_v2
+      - name: transactions_v2
   - name: udfs_streamline
     database: udfs
     schema: streamline
