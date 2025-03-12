@@ -3,6 +3,10 @@ run-name: ${{ github.event.inputs.branch }}
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        required: true
+        type: string
 
 concurrency: ${{ github.workflow }}
 
